@@ -5,3 +5,7 @@ _metadata/
 node_modules/
 *.log
 .DS_Store
+
+# Built store packages - attach these to a GitHub Release instead of
+# committing them; regenerate anytime with the steps in docs/store-listing.md.
+releases/*.zip
