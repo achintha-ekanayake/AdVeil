@@ -26,6 +26,7 @@ Cross-browser overlay + ad blocker extension (Manifest V3).
   - [Finding 7: Confirmation gate loophole - "overlay" as a keyword](#finding-7-confirmation-gate-loophole---overlay-as-a-keyword)
   - [Finding 8: The entire page - `<body>` itself - got hidden](#finding-8-the-entire-page---body-itself---got-hidden)
   - [Finding 9: A WordPress theme's main content wrapper got hidden, collapsing the page to zero height](#finding-9-a-wordpress-themes-main-content-wrapper-got-hidden-collapsing-the-page-to-zero-height)
+  - [Finding 10: Cloudflare's own dashboard drawer got hidden, blocking a deployment step](#finding-10-cloudflares-own-dashboard-drawer-got-hidden-blocking-a-deployment-step)
 
 ## Context
 
@@ -59,7 +60,7 @@ Add-blocker/
 
 ## manifest.json
 
-- `manifest_version: 3`, permissions: `declarativeNetRequest`, `storage`, `scripting`, `tabs`; `host_permissions: ["<all_urls>"]` (required since protection must run proactively on every page, not just on click - document this trade-off in README).
+- `manifest_version: 3`, permissions: `declarativeNetRequest`, `storage`, `tabs`; `host_permissions: ["<all_urls>"]` (required since protection must run proactively on every page, not just on click - document this trade-off in README).
 - `background`: dual-key object - `service_worker` (Chrome) + `scripts` (Firefox) both pointing at `background/service-worker.js`. **Do not use ES module `import`/`export`** in that file - flat script avoids module-vs-classic-script cross-browser ambiguity; drop `"type": "module"`.
 - `action.default_popup: popup/popup.html`.
 - `declarative_net_request.rule_resources`: one static ruleset pointing at `rules/generated/dnr-rules.json`.
@@ -202,3 +203,10 @@ Real defects found via live-site testing, in order discovered. Read before chang
 - Cause: `coverage(4) + adIframe(2) = 6` cleared the gate despite `position: static` - the two strongest coverage tiers never required `position: fixed`, only the weakest did, so any large ordinary content wrapper on any page got free coverage points; `adIframe` also searches the full subtree with no depth/size limit, so any wrapper containing a real ad iframe anywhere inside it matched.
 - Fix: coverage now only counts for `position: fixed` elements at all three tiers - an overlay floats over content, a huge `position: static` wrapper is just the page.
 - Status: Fixed. Real ad content on the same page (`#ad_banner` + its iframe) is still correctly blocked via the cosmetic selector list, unaffected by this fix.
+
+### Finding 10: Cloudflare's own dashboard drawer got hidden, blocking a deployment step
+
+- Symptom: a Cloudflare dashboard settings panel wouldn't open while deploying `server/issue-proxy`.
+- Cause: `position(3) + zIndex(2, >=1000 tier) + delayed(1) = 6` qualified via z-index alone - Cloudflare's own design system uses z-index 1150 for this legitimate drawer.
+- Fix: the qualifying z-index bar raised from >=1000 to only the most extreme tier (>=9999).
+- Status: Fixed.

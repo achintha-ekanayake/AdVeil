@@ -13,10 +13,7 @@ const reportStatus = document.getElementById('oab-report-status');
 const reportHappened = document.getElementById('oab-report-happened');
 const reportExpected = document.getElementById('oab-report-expected');
 
-// Set after deploying server/issue-proxy (see that directory's README).
-// Left blank, the form still works but submission will fail with a clear
-// error rather than silently doing nothing.
-const ISSUE_PROXY_URL = '';
+const ISSUE_PROXY_URL = 'https://adveil-issue-proxy.achiekanayake2.workers.dev/';
 
 let activeTab = null;
 let activeHostname = null;

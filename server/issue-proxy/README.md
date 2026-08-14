@@ -13,7 +13,7 @@ Requires a [Cloudflare account](https://dash.cloudflare.com) and the [`wrangler`
 
 2. **Create the rate-limit KV namespace**:
    ```sh
-   wrangler kv:namespace create ISSUE_RATE_LIMIT_KV
+   wrangler kv namespace create ISSUE_RATE_LIMIT_KV
    ```
    Copy the returned `id` into `wrangler.toml`.
 
@@ -32,7 +32,7 @@ Requires a [Cloudflare account](https://dash.cloudflare.com) and the [`wrangler`
 
 ## Design notes
 
-- Only accepts `{ title, body, clientId }` — no other GitHub API parameter is exposed to callers.
+- Only accepts `{ title, body, clientId }` - no other GitHub API parameter is exposed to callers.
 - Only creates issues on one hardcoded repo.
 - Rejects requests whose `Origin` isn't a `chrome-extension://` or `moz-extension://` scheme.
 - Rate-limits by a client-supplied anonymous ID (falls back to the connecting IP), capped at 3 issues per hour per client. This deters casual abuse; it is not a defense against a determined attacker spoofing origins and IDs. Pair with Cloudflare's dashboard-level rate limiting for stronger protection if abuse becomes a problem.

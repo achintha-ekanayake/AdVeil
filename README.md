@@ -85,6 +85,10 @@ Contributions are welcome. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup, t
 
 To report a vulnerability, see [`SECURITY.md`](SECURITY.md). Please do not open a public issue for security reports.
 
+## Privacy
+
+AdVeil requests broad permissions (`<all_urls>`) because ad detection has to run on every page load. See the [privacy policy](docs/privacy.html) for exactly what that access is used for and what, if anything, ever leaves your device.
+
 ## License
 
 Released under the [MIT License](LICENSE).

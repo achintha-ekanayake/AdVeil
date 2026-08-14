@@ -168,13 +168,16 @@ function oabScoreElement(el) {
 
   // Score alone isn't enough - position+coverage used to clear threshold
   // with no other signal, hiding legitimate full-screen UI (nav drawers,
-  // dropdowns). Require one distinctive signal too. See plan.md Findings 6-8.
+  // dropdowns). Require one distinctive signal too. See plan.md Findings 6-9.
+  // z-index >=1000 (tier 2) was dropped from this list - design systems
+  // (Bootstrap, Cloudflare's own dashboard) routinely use 1000-2000 for
+  // legitimate drawers/modals. Only the extreme >=9999 tier still qualifies.
   const qualifies =
     signals.scrollLock > 0 ||
     signals.keyword > 0 ||
     signals.adIframe > 0 ||
     signals.standardAdSize > 0 ||
-    signals.zIndex >= 2; // the >=1000 tier or higher
+    signals.zIndex >= 3; // only the >=9999 tier
 
   if (OAB_DEBUG) {
     console.log('[overlay-ad-blocker]', JSON.stringify({

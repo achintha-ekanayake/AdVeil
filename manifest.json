@@ -1,12 +1,11 @@
 {
   "manifest_version": 3,
   "name": "AdVeil",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Open-source extension that blocks overlay ads, popunder redirects, and trackers using on-page heuristics and a curated filter list.",
   "permissions": [
     "declarativeNetRequest",
     "storage",
-    "scripting",
     "tabs"
   ],
   "host_permissions": [

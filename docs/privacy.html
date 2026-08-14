@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AdVeil Privacy Policy</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #1b1b1b;
+    --muted: #555555;
+    --border: #e2e2e2;
+    --accent: #2e7d32;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e0e10;
+      --fg: #eaeaea;
+      --muted: #a8a8a8;
+      --border: #2a2a2e;
+      --accent: #5cb85c;
+    }
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.6;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+  h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+  .updated { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
+  h2 { font-size: 1.2rem; margin-top: 2.25rem; border-bottom: 1px solid var(--border); padding-bottom: 0.4rem; }
+  code {
+    background: color-mix(in srgb, var(--fg) 8%, transparent);
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+  a { color: var(--accent); }
+  ul { padding-left: 1.3rem; }
+  .summary {
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+  }
+</style>
+</head>
+<body>
+
+<h1>AdVeil Privacy Policy</h1>
+<p class="updated">Last updated: 2026-08-15</p>
+
+<div class="summary">
+  <strong>In short:</strong> AdVeil does not collect, transmit, or sell any browsing data. All ad-detection and blocking happens locally in your browser. The one exception is the optional, explicit "Report an issue" form, which only sends data when you choose to submit it.
+</div>
+
+<h2>What AdVeil does on pages you visit</h2>
+<p>AdVeil requests access to all sites (<code>&lt;all_urls&gt;</code>) because it needs to scan and act on page content <em>before</em> ads and popups render, on every page load — not just when you click the toolbar icon. This access is used only to:</p>
+<ul>
+  <li>Detect and hide overlay ads, interstitials, and anti-adblock nags directly in your browser.</li>
+  <li>Hide known ad containers via CSS.</li>
+  <li>Block requests to a curated list of known ad and tracker domains.</li>
+  <li>Block popup/"clickunder" redirects triggered by malicious scripts.</li>
+</ul>
+<p>None of this activity is logged, transmitted, or shared. It happens entirely inside your browser, on your device.</p>
+
+<h2>Data stored locally</h2>
+<p>AdVeil stores the following in your browser's local extension storage (<code>chrome.storage.local</code>), which never leaves your device:</p>
+<ul>
+  <li>Whether protection is turned on or off.</li>
+  <li>A list of hostnames you've chosen to pause AdVeil on.</li>
+  <li>Aggregate counts of ads blocked (numbers only, no browsing history).</li>
+  <li>A randomly generated identifier, used only to rate-limit the optional issue-report feature described below. It is not linked to your identity, browsing activity, or any other data.</li>
+</ul>
+
+<h2>The "Report an issue" form</h2>
+<p>The toolbar popup includes an optional form for reporting bugs. Data is sent <strong>only</strong> if you fill in the form and press Submit. Nothing is sent automatically or in the background. When you do submit, the following is sent to a small backend service operated by the developer (a Cloudflare Worker) which files a GitHub issue on the project's public repository:</p>
+<ul>
+  <li>The text you write describing what happened and what you expected.</li>
+  <li>The URL of the page you were on when you opened the form.</li>
+  <li>Your browser name (e.g. "Chrome" or "Firefox") and the AdVeil version number.</li>
+  <li>The random, non-identifying installation ID mentioned above, used only to prevent report spam.</li>
+</ul>
+<p>This report becomes a public GitHub issue. Do not include personal information in your report that you don't want to be public.</p>
+
+<h2>What AdVeil does not do</h2>
+<ul>
+  <li>No analytics or telemetry of any kind.</li>
+  <li>No tracking of your browsing activity.</li>
+  <li>No sale or sharing of data with third parties.</li>
+  <li>No data used for advertising, credit, or lending purposes.</li>
+</ul>
+
+<h2>Open source</h2>
+<p>AdVeil's full source code is available for review at <a href="https://github.com/achintha-ekanayake/AdVeil">github.com/achintha-ekanayake/AdVeil</a>, including the backend code for the issue-report feature (<code>server/issue-proxy/</code>).</p>
+
+<h2>Contact</h2>
+<p>Questions or concerns: open an issue at <a href="https://github.com/achintha-ekanayake/AdVeil/issues">github.com/achintha-ekanayake/AdVeil/issues</a>.</p>
+
+<h2>Changes to this policy</h2>
+<p>If this policy changes, the "Last updated" date above will change accordingly. Material changes will be noted in the project's release notes.</p>
+
+</body>
+</html>
