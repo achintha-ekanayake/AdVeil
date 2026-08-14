@@ -1,18 +1,8 @@
 /**
- * Heuristic overlay-ad detection engine - the core, original mechanism of
- * this extension (see plan.md "Overlay heuristic engine").
- *
- * Scores DOM elements against multiple weighted signals (fixed/sticky
- * position, high z-index, viewport coverage, body scroll-lock correlation,
- * delayed appearance after load, ad-keyword hints, ad iframe presence) and
- * hides (never removes) anything clearing HIDE_THRESHOLD.
- *
- * Relies on OAB_MARKER_ATTR from content-scripts/cosmetic-filter.js, which
- * runs first in the same content-script world (see manifest.json content_scripts
- * order) - elements already hidden by the cosmetic CSS pass are tagged with
- * that attribute and are skipped here entirely, both to avoid redundant work
- * and to avoid double-counting the same element in two different stats
- * buckets (see plan.md "Small implementation-time checks").
+ * Heuristic overlay-ad detection engine - scores DOM elements on position,
+ * z-index, coverage, scroll-lock, delay, keywords, and ad-iframe presence.
+ * Relies on OAB_MARKER_ATTR from cosmetic-filter.js (loads first) to skip
+ * elements already hidden there. See plan.md Findings Log for why.
  */
 
 // Flip on manually during development to see the per-signal score breakdown
@@ -23,16 +13,12 @@ const OAB_HIDE_THRESHOLD = 6;
 
 const OAB_MIN_CANDIDATE_SIZE = 50; // px, both width and height, pre-filter
 
-// Deliberately does NOT include "paywall": confirmed via fixture testing
-// that it's a real false-positive trigger (a legitimate subscription paywall
-// scored high enough to get auto-hidden once "paywall" contributed a point).
-// More importantly, hiding paywalls isn't ad-blocking - a paywall is
-// legitimate content-gating UI, and auto-removing it edges into "paywall
-// bypass" territory, a different feature this extension does not intend to
-// provide. Do not re-add it without re-reading this comment.
+// "paywall" and "overlay" deliberately excluded - both caused false
+// positives (a legitimate paywall, and framework "Overlay" components like
+// GitHub's dropdowns). See plan.md Findings 3 and 7 before re-adding either.
 const OAB_AD_KEYWORDS = [
   'ad', 'ads', 'advert', 'sponsor', 'sponsored', 'promo',
-  'overlay', 'interstitial', 'popup', 'adblock', 'nag',
+  'interstitial', 'popup', 'adblock', 'nag',
   'banner', 'bnr'
 ];
 
@@ -43,13 +29,9 @@ const OAB_AD_IFRAME_HOSTS = [
   'adform.net', 'smartadserver.com', 'appnexus.com'
 ];
 
-// Standard IAB ad-unit pixel dimensions [width, height]. These are SMALL in
-// absolute pixels relative to any real viewport, which is exactly why a pure
-// "% of viewport" coverage signal misses them (confirmed against a real
-// site during manual testing - see plan.md changelog / verification notes:
-// a 728x90 fixed-position banner overlapping a video player scored well
-// under threshold using coverage alone, since 728x90 is only ~7% of a
-// 1280x720 viewport despite being a textbook intrusive overlay ad unit).
+// Standard IAB ad sizes are small in absolute pixels, so viewport-%
+// coverage alone misses them (a 728x90 banner is ~7% of a 1280x720
+// screen). See plan.md Finding 2.
 const OAB_STANDARD_AD_SIZES = [
   [728, 90], [970, 250], [970, 90], [320, 50], [320, 100],
   [300, 250], [336, 280], [300, 600], [300, 50], [250, 250],
@@ -85,13 +67,9 @@ let oabNextHiddenId = 1;
 const oabHiddenRegistry = new Map();
 const oabFirstSeenAt = new WeakMap();
 
-// oabIsWhitelisted is intentionally NOT redefined here - it's declared once
-// in content-scripts/cosmetic-filter.js, which manifest.json guarantees
-// loads first into this same content-script global scope. Redeclaring it
-// here would silently shadow that definition (harmless for this particular
-// function since both bodies are identical, but see the naming note at the
-// top of cosmetic-filter.js for why duplicate top-level identifiers across
-// these two files are a real, previously-hit bug class - avoid adding more).
+// Declared once in cosmetic-filter.js (loads first, same global scope) -
+// not redefined here. Duplicate top-level names across these two files
+// have caused fatal crashes before; see plan.md Finding 1.
 
 // --- Signal helpers ------------------------------------------------------
 
@@ -105,13 +83,9 @@ function oabViewportCoverageRatio(el) {
   return (visibleW * visibleH) / (vw * vh);
 }
 
-// Auto-generated hex IDs/hashes (very common - React/component-library
-// unique-id suffixes, analytics IDs, etc.) can spuriously contain a short
-// keyword as an isolated substring once digits are treated as separators -
-// found via live testing: "surveyWindowWrap-40ea9b0799ad6c6bd5d8fe24139f..."
-// tokenizes to include "ad" (from "...9ad6...") purely by digit-boundary
-// coincidence, with nothing to do with advertising. Strip long hex runs
-// before tokenizing so random hashes can't masquerade as keyword matches.
+// Strips long hex runs (e.g. auto-generated IDs) before keyword matching,
+// so a hash like "...9ad6..." can't tokenize into a spurious "ad" match.
+// See plan.md Finding 5.
 const OAB_HEX_RUN_RE = /[0-9a-f]{8,}/gi;
 
 function oabMatchesAdKeyword(id, className) {
@@ -156,16 +130,19 @@ function oabScoreElement(el) {
   }
   score += signals.zIndex;
 
+  // Coverage only counts for fixed elements - an overlay floats over
+  // content; a huge position:static wrapper is just the page. See
+  // plan.md Finding 9 (a WordPress #page wrapper scored 6 without this).
   const coverage = oabViewportCoverageRatio(el);
-  if (coverage >= 0.6) signals.coverage = 4;
-  else if (coverage >= 0.3) signals.coverage = 2;
-  else if (coverage >= 0.15 && style.position === 'fixed') signals.coverage = 1;
+  const isFixed = style.position === 'fixed';
+  if (isFixed && coverage >= 0.6) signals.coverage = 4;
+  else if (isFixed && coverage >= 0.3) signals.coverage = 2;
+  else if (isFixed && coverage >= 0.15) signals.coverage = 1;
   else signals.coverage = 0;
   score += signals.coverage;
 
-  // Standard IAB ad-unit size, fixed/sticky positioned: a strong signal on
-  // its own, independent of viewport coverage %, since these units are
-  // deliberately small-in-pixels (see OAB_STANDARD_AD_SIZES comment above).
+  // Standard IAB ad size, fixed/sticky positioned: strong signal on its
+  // own, independent of coverage % (see OAB_STANDARD_AD_SIZES above).
   const rectForSize = el.getBoundingClientRect();
   const isFixedish = style.position === 'fixed' || style.position === 'sticky';
   signals.standardAdSize =
@@ -189,19 +166,33 @@ function oabScoreElement(el) {
   signals.adIframe = oabContainsAdIframe(el) ? 2 : 0;
   score += signals.adIframe;
 
+  // Score alone isn't enough - position+coverage used to clear threshold
+  // with no other signal, hiding legitimate full-screen UI (nav drawers,
+  // dropdowns). Require one distinctive signal too. See plan.md Findings 6-8.
+  const qualifies =
+    signals.scrollLock > 0 ||
+    signals.keyword > 0 ||
+    signals.adIframe > 0 ||
+    signals.standardAdSize > 0 ||
+    signals.zIndex >= 2; // the >=1000 tier or higher
+
   if (OAB_DEBUG) {
     console.log('[overlay-ad-blocker]', JSON.stringify({
-      score, signals, id: el.id, className: typeof el.className === 'string' ? el.className : null
+      score, qualifies, signals, id: el.id, className: typeof el.className === 'string' ? el.className : null
     }));
   }
 
-  return score;
+  return { score, qualifies };
 }
 
 // --- Hide / restore --------------------------------------------------------
 
 function oabHideElement(el, score) {
   if (el.hasAttribute('data-oab-hidden-by')) return; // already handled
+
+  // Defense in depth - oabIsEligibleCandidate already excludes <html>/<body>,
+  // but hiding either blanks the whole page, so refuse here too.
+  if (el === document.documentElement || el === document.body) return;
 
   const priorValue = el.style.getPropertyValue('display');
   const priorPriority = el.style.getPropertyPriority('display');
@@ -255,6 +246,9 @@ function oabRestoreAll() {
 
 function oabIsEligibleCandidate(el) {
   if (!(el instanceof Element)) return false;
+  // No legitimate ad is ever the document root. Hiding <body>/<html> once
+  // blanked an entire real page (see plan.md Finding 8) - exclude unconditionally.
+  if (el === document.documentElement || el === document.body) return false;
   if (el.hasAttribute('data-oab-hidden-by')) return false; // dedupe (incl. cosmetic-filter hits)
   const w = el.offsetWidth;
   const h = el.offsetHeight;
@@ -266,8 +260,8 @@ function oabEvaluateCandidate(el) {
     oabFirstSeenAt.set(el, Date.now());
   }
   if (!oabIsEligibleCandidate(el)) return;
-  const score = oabScoreElement(el);
-  if (score >= OAB_HIDE_THRESHOLD) {
+  const { score, qualifies } = oabScoreElement(el);
+  if (score >= OAB_HIDE_THRESHOLD && qualifies) {
     oabHideElement(el, score);
   }
 }

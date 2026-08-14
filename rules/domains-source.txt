@@ -1,10 +1,6 @@
-# Curated ad / tracker domain list for declarativeNetRequest static blocking.
-# One domain per line. Lines starting with # are comments; blank lines ignored.
-# Subdomains are matched automatically (build script emits ||domain^ rules).
-#
-# This is a hand-curated, intentionally small MVP list of well-known
-# ad-serving and tracking domains - NOT a full EasyList/EasyPrivacy import.
-# Extend as needed; keep entries one bare registrable domain per line.
+# Curated ad/tracker domain list for declarativeNetRequest static blocking.
+# One bare domain per line (subdomains matched automatically). Not a full
+# EasyList/EasyPrivacy import - see plan.md "Network blocking".
 
 # --- Google ad ecosystem ---
 doubleclick.net
@@ -76,14 +72,9 @@ ezoic.net
 ezodn.com
 snigelweb.com
 
-# --- Ad-blocker-circumvention ad delivery (found via live testing against
-# canyoublockit.com/extreme-test/ - these services' whole business model is
-# proxying ad creative through rotating/randomized subdomains and even
-# fully separate random-looking domains specifically to dodge blocklists.
-# The randomized destinations are an unwinnable whack-a-mole for a curated
-# list (documented scope limit), but these are the services' own stable,
-# named domains - blocking them catches all their rotating subdomains too,
-# since ||domain^ matches subdomains) ---
+# --- Ad-blocker-circumvention networks (stable loader domains only -
+# they proxy actual ad creative through randomized subdomains we can't
+# enumerate; see plan.md Finding 5) ---
 adsco.re
 antiadblocksystems.com
 

@@ -1,16 +1,8 @@
 #!/usr/bin/env node
 /**
- * Compiles rules/domains-source.txt into rules/generated/dnr-rules.json,
- * a static Chrome/Firefox declarativeNetRequest ruleset.
- *
- * Deliberately minimal scope (see plan.md "Network blocking"):
- *  - domain-only blocking (no path/regex/filter-option parsing)
- *  - subresource types only - main_frame is NEVER blocked, so a direct
- *    navigation to an ad-network domain is never silently blocked
- *  - sub_frame IS included, since a lot of ad delivery happens via ad iframes
- *
- * Plain Node, no dependencies, no network access. Run with:
- *   node rules/build-dnr-rules.js
+ * Compiles rules/domains-source.txt into rules/generated/dnr-rules.json.
+ * Domain-only blocking, main_frame never blocked, sub_frame included
+ * (ad iframes). Plain Node, no deps. Run: node rules/build-dnr-rules.js
  */
 
 const fs = require('fs');

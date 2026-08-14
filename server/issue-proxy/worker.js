@@ -1,14 +1,7 @@
 /**
- * AdVeil issue-report proxy.
- *
- * Lets the extension's popup file a GitHub issue directly, without the user
- * visiting GitHub or holding a personal access token. This Worker holds the
- * one credential (GITHUB_TOKEN, set as a secret — see README.md in this
- * directory) and is the only thing allowed to write to the repo's issues.
- *
- * Deliberately narrow: accepts only { title, body, clientId }, writes only
- * to one hardcoded repo, and applies a KV-backed rate limit per client. It
- * does not accept arbitrary GitHub API parameters from the caller.
+ * AdVeil issue-report proxy - lets the popup file a GitHub issue directly,
+ * without a personal token. Holds the one GITHUB_TOKEN secret (see
+ * README.md), accepts only { title, body, clientId }, rate-limited per client.
  */
 
 const REPO = 'achintha-ekanayake/adveil';
@@ -79,7 +72,7 @@ export default {
     const rateKey = `rl:${clientId || request.headers.get('CF-Connecting-IP') || 'anon'}`;
     const allowed = await checkRateLimit(env.ISSUE_RATE_LIMIT_KV, rateKey);
     if (!allowed) {
-      return new Response('Rate limit exceeded — try again later.', { status: 429, headers: corsHeaders(origin) });
+      return new Response('Rate limit exceeded - try again later.', { status: 429, headers: corsHeaders(origin) });
     }
 
     const ghResponse = await fetch(`https://api.github.com/repos/${REPO}/issues`, {

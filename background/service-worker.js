@@ -1,23 +1,8 @@
 /**
- * Background service worker (Chrome) / event page (Firefox).
- *
- * Deliberately a single flat script - no ES `import`/`export` - so the same
- * file works whether the runtime treats it as a service worker (Chrome,
- * manifest key `service_worker`) or a classic background script (Firefox,
- * manifest key `scripts`). See manifest.json + plan.md "manifest.json".
- *
- * Responsibilities:
- *  - First-run + schema migration for chrome.storage.local
- *  - Per-tab block counters (overlay + cosmetic hides), mirrored to
- *    chrome.storage.session where available, with rehydration on startup
- *    so a service-worker restart doesn't show a stale/zero badge
- *  - Toolbar badge updates
- *  - Message handling from content scripts (counts) and the popup (reads)
- *
- * NOT handled here (see plan.md "Known MV3 limitation"): exact
- * declarativeNetRequest block counts. That production-accurate API isn't
- * available outside dev/unpacked mode, so the badge intentionally reflects
- * only overlay + cosmetic hides, which this script CAN observe reliably.
+ * Background service worker (Chrome) / event page (Firefox). Flat script,
+ * no ES import/export, so it works as both. Handles storage migration,
+ * per-tab badge counters (overlay + cosmetic hides only, not network - see
+ * plan.md "Known MV3 limitation"), and messages from content scripts/popup.
  */
 
 const CURRENT_SCHEMA_VERSION = 1;
@@ -33,16 +18,12 @@ const DEFAULT_SETTINGS = {
   schemaVersion: CURRENT_SCHEMA_VERSION
 };
 
-// Whether chrome.storage.session is usable in this browser/runtime. Firefox
-// support for storage.session varies by version; feature-detect rather than
-// assume. Per plan.md: if unavailable, per-tab counters are best-effort only
-// and will reset on a service-worker restart - an accepted MVP gap.
+// Feature-detect rather than assume (Firefox support varies by version).
+// If unavailable, per-tab counters are best-effort and reset on restart.
 const HAS_SESSION_STORAGE = !!(chrome.storage && chrome.storage.session);
 
-// In-memory per-tab counters: tabId -> { overlay: number, cosmetic: number }
-// This is the working copy the badge is always drawn from; storage.session
-// (when available) is a durability mirror, not the primary source during a
-// live worker lifetime.
+// tabId -> { overlay, cosmetic }. The working copy the badge reads from;
+// storage.session (if available) is a durability mirror, not the source.
 let tabStats = new Map();
 let rehydrated = false;
 
@@ -57,9 +38,7 @@ function emptyStats() {
 // --- Storage bootstrap / migration -----------------------------------------
 
 function runMigrations(stored) {
-  // Only one schema version exists today, but this check is real (not
-  // decorative) so future schemaVersion bumps have a place to land instead
-  // of being invented the first time they're needed.
+  // Real check, not decorative, so future schemaVersion bumps land here.
   const settings = Object.assign({}, DEFAULT_SETTINGS, stored);
   settings.stats = Object.assign({}, DEFAULT_SETTINGS.stats, stored.stats);
 
@@ -206,9 +185,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (changeInfo.status === 'loading') {
-    // A fresh top-level load - previous counts are stale.
-    // (Known scope limit: SPA/pushState navigations do NOT fire this, so
-    // counters persist across client-side route changes. See plan.md.)
+    // Fresh top-level load - previous counts are stale. SPA/pushState
+    // navigations don't fire this, so counters persist there (see plan.md).
     tabStats.set(tabId, emptyStats());
     persistTabStats(tabId, emptyStats());
     chrome.action.setBadgeText({ tabId, text: '' });

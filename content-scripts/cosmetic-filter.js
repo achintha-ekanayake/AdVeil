@@ -1,18 +1,8 @@
 /**
- * Generic + overlay-precision cosmetic ad hiding.
- *
- * Runs at document_start. Injects a single <style> rule built from two
- * curated selector lists (kept in sync by hand with rules/overlay-selectors.json
- * and rules/generic-ad-selectors.json - those JSON files are the documentation
- * source of truth; these are the live copies, inlined for synchronous
- * availability with no fetch race at document_start).
- *
- * This file and content-scripts/overlay-engine.js are loaded into the same
- * content-script world (see manifest.json content_scripts order), so the
- * OAB_MARKER_ATTR constant declared here is visible to overlay-engine.js too
- * - used to dedupe so an element hidden by CSS here is never re-scored (and
- * double-counted) by the heuristic engine. See plan.md "Small
- * implementation-time checks".
+ * Generic + overlay-precision cosmetic ad hiding. Injects one <style> rule
+ * at document_start from curated selector lists (kept in sync by hand with
+ * rules/*.json). OAB_MARKER_ATTR is shared with overlay-engine.js (same
+ * content-script world) to dedupe elements hidden here.
  */
 
 const OAB_MARKER_ATTR = 'data-oab-hidden-by';
@@ -128,16 +118,9 @@ const OAB_GENERIC_AD_SELECTORS = [
 const OAB_ALL_SELECTORS = OAB_OVERLAY_SELECTORS.concat(OAB_GENERIC_AD_SELECTORS);
 const OAB_JOINED_SELECTOR = OAB_ALL_SELECTORS.join(',\n');
 
-// NOTE ON NAMING: this file and overlay-engine.js are loaded into the same
-// content-script global scope (see manifest.json content_scripts order), so
-// every top-level `let`/`const`/`function` identifier here MUST be unique
-// across both files - a duplicate `let`/`const` throws a fatal SyntaxError
-// that silently kills the *other* script's entire execution (found the hard
-// way during live-site testing: both files originally declared their own
-// `oabRescanTimers`, which crashed overlay-engine.js on every page). Hence
-// the `oabCosmetic` prefix below, distinct from overlay-engine.js's `oab`
-// prefix. `oabIsWhitelisted` is the one deliberately shared exception -
-// defined once, here, since this file loads first.
+// This file shares a global scope with overlay-engine.js, so every
+// top-level name here must be unique (a duplicate `let`/`const` crashes
+// the other script - see plan.md Finding 1). Hence the `oabCosmetic` prefix.
 
 let oabCosmeticStyleEl = null;
 let oabCosmeticRescanTimers = [];
@@ -201,11 +184,8 @@ function oabCosmeticApplyState(enabled, whitelisted) {
     oabCosmeticClearRescans();
   }
 
-  // Bridge to content-scripts/popunder-guard.js, which runs in the page's
-  // MAIN world and therefore has no chrome.storage access of its own - see
-  // that file's header comment for why this attribute is the hand-off
-  // point. documentElement always exists by document_start, even before
-  // <body>, so this is safe to call immediately.
+  // Bridge to popunder-guard.js (MAIN world, no chrome.storage access).
+  // documentElement exists by document_start, safe to call immediately.
   document.documentElement.setAttribute('data-oab-enabled', String(active));
 }
 

@@ -12,7 +12,6 @@ const reportSubmitBtn = document.getElementById('oab-report-submit');
 const reportStatus = document.getElementById('oab-report-status');
 const reportHappened = document.getElementById('oab-report-happened');
 const reportExpected = document.getElementById('oab-report-expected');
-const reportSteps = document.getElementById('oab-report-steps');
 
 // Set after deploying server/issue-proxy (see that directory's README).
 // Left blank, the form still works but submission will fail with a clear
@@ -99,10 +98,8 @@ function detectBrowserLabel() {
   return 'Unknown';
 }
 
-// A random, non-identifying per-install ID — lets the backend rate-limit
-// per install without collecting anything more identifying than "this
-// install has already filed N issues this hour." Generated once, stored
-// locally, never sent anywhere except the issue-proxy's rate-limit check.
+// Random, non-identifying per-install ID for the backend's rate limit.
+// Generated once, stored locally, sent only to the issue-proxy.
 async function getOrCreateClientId() {
   const result = await new Promise((resolve) => chrome.storage.local.get(['reportClientId'], resolve));
   if (result.reportClientId) return result.reportClientId;
@@ -119,7 +116,6 @@ function setReportStatus(text, kind) {
 function resetReportForm() {
   reportHappened.value = '';
   reportExpected.value = '';
-  reportSteps.value = '';
   setReportStatus('', null);
 }
 
@@ -161,10 +157,7 @@ reportForm.addEventListener('submit', async (event) => {
     reportHappened.value.trim(),
     '',
     '**What you expected**:',
-    reportExpected.value.trim() || '(not provided)',
-    '',
-    '**Steps to reproduce**:',
-    reportSteps.value.trim() || '(not provided)'
+    reportExpected.value.trim() || '(not provided)'
   ].join('\n');
 
   reportSubmitBtn.disabled = true;
