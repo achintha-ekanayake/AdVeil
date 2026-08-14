@@ -1,0 +1,7 @@
+# Chrome writes this into the extension's own directory when loaded
+# unpacked (compiled declarativeNetRequest ruleset cache) - not source.
+_metadata/
+
+node_modules/
+*.log
+.DS_Store

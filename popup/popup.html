@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>AdVeil</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header class="oab-header">
+    <img src="../icons/icon32.png" alt="" class="oab-logo" />
+    <div class="oab-title">AdVeil</div>
+  </header>
+
+  <section class="oab-row">
+    <label class="oab-switch-row" for="oab-enabled-toggle">
+      <span>Protection</span>
+      <span class="oab-switch">
+        <input type="checkbox" id="oab-enabled-toggle" />
+        <span class="oab-slider"></span>
+      </span>
+    </label>
+  </section>
+
+  <section class="oab-row">
+    <label class="oab-switch-row" for="oab-site-toggle">
+      <span class="oab-site-label">
+        Paused on <span id="oab-hostname">this site</span>
+      </span>
+      <span class="oab-switch">
+        <input type="checkbox" id="oab-site-toggle" />
+        <span class="oab-slider"></span>
+      </span>
+    </label>
+  </section>
+
+  <section class="oab-stats">
+    <div class="oab-stats-number" id="oab-stats-count">0</div>
+    <div class="oab-stats-label">ads blocked on this page</div>
+  </section>
+
+  <section class="oab-row oab-restore-row">
+    <button id="oab-restore-btn" class="oab-restore-btn">
+      Having trouble with this page? Restore hidden elements
+    </button>
+  </section>
+
+  <section class="oab-row oab-report-row">
+    <button id="oab-report-toggle" class="oab-report-btn">Report an issue</button>
+
+    <form id="oab-report-form" class="oab-report-form" hidden>
+      <label class="oab-field-label" for="oab-report-happened">What happened *</label>
+      <textarea id="oab-report-happened" rows="2" required></textarea>
+
+      <label class="oab-field-label" for="oab-report-expected">What you expected</label>
+      <textarea id="oab-report-expected" rows="2"></textarea>
+
+      <label class="oab-field-label" for="oab-report-steps">Steps to reproduce</label>
+      <textarea id="oab-report-steps" rows="2"></textarea>
+
+      <div class="oab-report-actions">
+        <button type="button" id="oab-report-cancel" class="oab-report-cancel">Cancel</button>
+        <button type="submit" id="oab-report-submit" class="oab-report-submit">Submit</button>
+      </div>
+
+      <div id="oab-report-status" class="oab-report-status"></div>
+    </form>
+  </section>
+
+  <footer class="oab-footer">
+    <span id="oab-status-line"></span>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

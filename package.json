@@ -1,0 +1,18 @@
+{
+  "name": "adveil",
+  "version": "0.1.0",
+  "description": "Open-source, cross-browser (Chrome + Firefox) extension that blocks overlay ads, popunder redirects, and trackers using heuristic detection and a curated filter list.",
+  "private": true,
+  "scripts": {
+    "build": "node rules/build-dnr-rules.js"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/achintha-ekanayake/adveil.git"
+  },
+  "bugs": {
+    "url": "https://github.com/achintha-ekanayake/adveil/issues"
+  },
+  "homepage": "https://github.com/achintha-ekanayake/adveil#readme"
+}

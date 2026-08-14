@@ -1,0 +1,154 @@
+# Curated ad / tracker domain list for declarativeNetRequest static blocking.
+# One domain per line. Lines starting with # are comments; blank lines ignored.
+# Subdomains are matched automatically (build script emits ||domain^ rules).
+#
+# This is a hand-curated, intentionally small MVP list of well-known
+# ad-serving and tracking domains - NOT a full EasyList/EasyPrivacy import.
+# Extend as needed; keep entries one bare registrable domain per line.
+
+# --- Google ad ecosystem ---
+doubleclick.net
+googlesyndication.com
+googleadservices.com
+google-analytics.com
+googletagservices.com
+googletagmanager.com
+adservice.google.com
+pagead2.googlesyndication.com
+adsense.google.com
+
+# --- Major ad networks / exchanges ---
+adnxs.com
+rubiconproject.com
+pubmatic.com
+openx.net
+casalemedia.com
+criteo.com
+criteo.net
+taboola.com
+outbrain.com
+adroll.com
+media.net
+smartadserver.com
+appnexus.com
+bidswitch.net
+contextweb.com
+sharethrough.com
+33across.com
+sovrn.com
+indexexchange.com
+gumgum.com
+yieldmo.com
+triplelift.com
+teads.tv
+spotxchange.com
+adform.net
+adform.com
+adcolony.com
+applovin.com
+unityads.unity3d.com
+vungle.com
+inmobi.com
+mopub.com
+chartboost.com
+tapjoy.com
+
+# --- Pop-up / interstitial / aggressive networks ---
+popads.net
+popcash.net
+propellerads.com
+adcash.com
+exoclick.com
+juicyads.com
+trafficjunky.net
+mgid.com
+revcontent.com
+adskeeper.co.uk
+zergnet.com
+content.ad
+
+# --- Anti-adblock / overlay-nag vendors ---
+blockadblock.com
+admiral.com
+sourcepoint.com
+adthrive.com
+ezoic.net
+ezodn.com
+snigelweb.com
+
+# --- Ad-blocker-circumvention ad delivery (found via live testing against
+# canyoublockit.com/extreme-test/ - these services' whole business model is
+# proxying ad creative through rotating/randomized subdomains and even
+# fully separate random-looking domains specifically to dodge blocklists.
+# The randomized destinations are an unwinnable whack-a-mole for a curated
+# list (documented scope limit), but these are the services' own stable,
+# named domains - blocking them catches all their rotating subdomains too,
+# since ||domain^ matches subdomains) ---
+adsco.re
+antiadblocksystems.com
+
+# --- Analytics / trackers ---
+scorecardresearch.com
+quantserve.com
+quantcount.com
+mixpanel.com
+segment.com
+segment.io
+hotjar.com
+crazyegg.com
+mouseflow.com
+fullstory.com
+clicktale.net
+optimizely.com
+amplitude.com
+newrelic.com
+chartbeat.com
+comscore.com
+adjust.com
+branch.io
+kochava.com
+appsflyer.com
+flurry.com
+
+# --- Social / tracking pixels commonly used for ad retargeting ---
+facebook.net
+connect.facebook.net
+ads-twitter.com
+analytics.twitter.com
+bat.bing.com
+ads.linkedin.com
+px.ads.linkedin.com
+snap.licdn.com
+ads.tiktok.com
+analytics.tiktok.com
+ct.pinterest.com
+
+# --- Misc ad-tech / RTB ---
+adition.com
+smaato.net
+freewheel.tv
+springserve.com
+loopme.com
+pubnative.net
+verizonmedia.com
+advertising.com
+rlcdn.com
+demdex.net
+krxd.net
+turn.com
+mathtag.com
+bluekai.com
+agkn.com
+crwdcntrl.net
+tribalfusion.com
+adblade.com
+undertone.com
+bidvertiser.com
+infolinks.com
+kargo.com
+lijit.com
+sonobi.com
+onetag-sys.com
+adyoulike.com
+smartyads.com
+vidoomy.com

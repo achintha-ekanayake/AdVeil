@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Overlay Ad Blocker - dev fixture page</title>
+<style>
+  body { font-family: sans-serif; margin: 0; padding: 2rem; line-height: 1.5; }
+  nav { background: #222; color: white; padding: 1rem; margin: -2rem -2rem 2rem; }
+  .legit-modal {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 320px;
+    padding: 1.5rem;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+    z-index: 500;
+  }
+  .legit-cookie-banner {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: #fafafa;
+    border-top: 1px solid #ddd;
+    padding: 1rem;
+    z-index: 500;
+  }
+  .legit-paywall {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    height: 25%;
+    background: white;
+    border-top: 2px solid #eee;
+    padding: 1rem;
+    z-index: 500;
+    text-align: center;
+  }
+  .fake-ad-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    color: white;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+  }
+  .fake-ad-overlay button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+  }
+  #ad-banner-sticky {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 20vh;
+    background: #ffcc00;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+  }
+  .close-x { position: absolute; top: 8px; right: 12px; cursor: pointer; }
+</style>
+</head>
+<body>
+  <nav>Overlay Ad Blocker - dev fixture page (not shipped with the extension)</nav>
+
+  <h1>Sample article content</h1>
+  <p>
+    This page exists only to manually verify the overlay heuristic engine
+    (content-scripts/overlay-engine.js) during development. It is not
+    referenced by manifest.json and is never loaded by the packed extension.
+  </p>
+  <p>
+    Load this extension unpacked, then open this file (via a local server or
+    file:// with "Allow access to file URLs" enabled), and open the console
+    to watch fixtures appear over the next ~2-10 seconds.
+  </p>
+
+  <h2>What should happen</h2>
+  <ul>
+    <li><strong>Positive #1</strong> - a full-screen "disable your ad blocker" fake overlay appears after 2s with a body scroll-lock. Should be hidden by the heuristic engine.</li>
+    <li><strong>Positive #2</strong> - a sticky bottom banner (<code>#ad-banner-sticky</code>) appears after 2.5s. Mid-range score - useful for threshold tuning; may or may not clear the bar depending on OAB_HIDE_THRESHOLD.</li>
+    <li><strong>Negative controls</strong> - a login-style modal, a cookie-consent banner, and a paywall strip are all present from page load, with no ad-keyword classes and no scroll-lock. These must remain visible - if any disappear, the heuristic is over-triggering.</li>
+  </ul>
+
+  <p>Set <code>OAB_DEBUG = true</code> at the top of overlay-engine.js to see the per-signal score breakdown for every evaluated element in the console.</p>
+
+  <!-- Negative control 1: legitimate small modal (immediate, no scroll-lock, no ad keywords) -->
+  <div class="legit-modal">
+    <span class="close-x" onclick="this.parentElement.style.display='none'">&times;</span>
+    <h3>Sign in to continue</h3>
+    <p>This is a normal login dialog. It should never be hidden.</p>
+    <input type="text" placeholder="Email" style="width:100%; margin-bottom:0.5rem;" />
+    <button>Sign in</button>
+  </div>
+
+  <!-- Negative control 2: cookie consent banner -->
+  <div class="legit-cookie-banner">
+    We use cookies to improve your experience.
+    <button onclick="this.parentElement.style.display='none'">Accept</button>
+  </div>
+
+  <!-- Negative control 3: paywall strip -->
+  <div class="legit-paywall">
+    <strong>You've reached your free article limit.</strong>
+    <p><button>Subscribe to continue reading</button></p>
+  </div>
+
+  <div id="fixture-mount"></div>
+
+  <script>
+    // Positive fixture #1: full-screen fake anti-adblock overlay, delayed,
+    // paired with a body scroll-lock - should score very high.
+    setTimeout(() => {
+      document.body.style.overflow = 'hidden';
+      const el = document.createElement('div');
+      el.className = 'fake-ad-overlay';
+      el.id = 'fake-adblock-nag';
+      el.innerHTML = `
+        <div>
+          <h2>Please disable your ad blocker</h2>
+          <p>This site is supported by ads. Please whitelist us to continue.</p>
+          <button onclick="document.getElementById('fake-adblock-nag').remove(); document.body.style.overflow='';">
+            I understand, reload
+          </button>
+        </div>`;
+      document.getElementById('fixture-mount').appendChild(el);
+      console.log('[fixture] positive #1 injected (full-screen overlay + scroll-lock)');
+    }, 2000);
+
+    // Positive fixture #2: sticky bottom ad banner, delayed, no scroll-lock.
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.id = 'ad-banner-sticky';
+      el.textContent = 'Sponsored: Buy now! (sticky bottom nag fixture)';
+      document.getElementById('fixture-mount').appendChild(el);
+      console.log('[fixture] positive #2 injected (sticky bottom banner)');
+    }, 2500);
+  </script>
+</body>
+</html>
