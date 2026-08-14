@@ -56,3 +56,5 @@ Paste into the "Notes to Reviewer" field on submission:
 2. Source: **Deploy from a branch**. Branch: `main`, folder: `/docs`.
 3. Save. The page will be live at `https://achintha-ekanayake.github.io/AdVeil/privacy.html` within a few minutes.
 4. Use that URL in both store submission forms.
+
+`docs/.nojekyll` is already checked in - without it, GitHub Pages tries to run the plain HTML through Jekyll's default theme build and fails (`Conversion error... assets/css/style.scss`). The marker file skips that and serves the files as static HTML directly.
