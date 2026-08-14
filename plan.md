@@ -66,6 +66,8 @@ Add-blocker/
 - `declarative_net_request.rule_resources`: one static ruleset pointing at `rules/generated/dnr-rules.json`.
 - `content_scripts`: `cosmetic-filter.js` + `overlay-engine.js` on `<all_urls>`, `run_at: document_start`, `all_frames: false` (top frame only). This is a real coverage cut, not just a cross-origin limitation: some overlay ads (and their close-button-hijacking scripts) render inside **first-party** iframes too, which this misses. `popunder-guard.js` is the one exception - see Finding 4.
 - `browser_specific_settings.gecko.id` set for Firefox loading - a stable value, since changing it later changes the extension's identity for storage/update purposes.
+- `browser_specific_settings.gecko.data_collection_permissions`: `required: ["none"]`, `optional: ["technicalAndInteraction", "browsingActivity"]` - matches actual behavior (zero collection for core function; browser/version/page-URL only sent if the user explicitly submits the popup's report form). Requires Firefox 140+, which is why `strict_min_version` is 140, not 128.
+- `permissions` does not include `scripting` - audited actual `chrome.scripting.*` usage across the codebase and found none; requesting an unused permission is exactly what store reviewers flag.
 - No `web_accessible_resources` needed. Default CSP is sufficient for extension pages (popup/background use no remote scripts or eval).
 
 ## Network blocking (declarativeNetRequest)

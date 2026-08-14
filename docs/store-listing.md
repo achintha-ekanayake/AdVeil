@@ -2,7 +2,7 @@
 
 Copy-paste source for the Chrome Web Store and Firefox AMO listings. Keep this in sync with `manifest.json` and `docs/privacy.html` — if either changes, update this file too.
 
-**Privacy policy URL** (once GitHub Pages is enabled — see bottom of this file): `https://achintha-ekanayake.github.io/AdVeil/privacy.html`
+**Privacy policy URL** (confirmed live): `https://achintha-ekanayake.github.io/AdVeil/privacy.html`
 
 ## Single purpose description
 
@@ -22,7 +22,7 @@ Copy-paste source for the Chrome Web Store and Firefox AMO listings. Keep this i
 > - Blocks requests to a curated list of known ad and tracker domains.
 > - Hides common ad containers via CSS.
 >
-> **Privacy:** All detection happens locally in your browser. AdVeil does not collect, transmit, or sell browsing data. Full privacy policy: [link].
+> **Privacy:** All detection happens locally in your browser. AdVeil does not collect, transmit, or sell browsing data. Full privacy policy: https://achintha-ekanayake.github.io/AdVeil/privacy.html
 >
 > **Open source:** Full source code, including the backend for the optional bug-report feature, is available at github.com/achintha-ekanayake/AdVeil.
 
@@ -44,11 +44,19 @@ Chrome's Privacy Practices form asks you to certify specific data-handling claim
 - **Is data used for purposes unrelated to the extension's core functionality?** No.
 - **Is data used to determine creditworthiness or for lending?** No.
 
+## Firefox AMO — data collection permissions
+
+The submission form will ask you to confirm the categories declared in `manifest.json`'s `browser_specific_settings.gecko.data_collection_permissions`: **required: none**; **optional: technical/interaction data, browsing activity** (the current page URL, browser name, and extension version — sent only if the user explicitly submits the popup's report form). Answer AMO's data collection questionnaire consistently with this.
+
 ## Firefox AMO — notes for reviewers
 
 Paste into the "Notes to Reviewer" field on submission:
 
-> This extension requests `<all_urls>` because its core function (detecting overlay ads before they render) requires running on every page load. `content-scripts/popunder-guard.js` uses `"world": "MAIN"` and `all_frames: true` with `match_origin_as_fallback: true` to override `window.open` in every frame including dynamically-created `about:blank` ad frames, which is necessary to block popup/clickunder redirects that otherwise bypass frame-scoped protections — see `plan.md` "Finding 4" in the repo for the full rationale. Privacy policy: [link]. Full source: github.com/achintha-ekanayake/AdVeil.
+> This extension requests `<all_urls>` because its core function (detecting overlay ads before they render) requires running on every page load. `content-scripts/popunder-guard.js` uses `"world": "MAIN"` and `all_frames: true` with `match_origin_as_fallback: true` to override `window.open` in every frame including dynamically-created `about:blank` ad frames, which is necessary to block popup/clickunder redirects that otherwise bypass frame-scoped protections — see `plan.md` "Finding 4" in the repo for the full rationale. Privacy policy: https://achintha-ekanayake.github.io/AdVeil/privacy.html. Full source: github.com/achintha-ekanayake/AdVeil.
+
+## Release packages
+
+Built via `npm run build` (refresh DNR rules) + a staged copy of only the runtime files (`manifest.json`, `background/`, `content-scripts/`, `popup/`, `icons/`, `rules/generated/dnr-rules.json`, `LICENSE` — not `plan.md`, `docs/`, `server/`, `test/`, or the DNR build sources). Chrome package zipped directly; Firefox package built with `npx web-ext build` (also run `npx web-ext lint` before submitting — 0 errors required, warnings about the ignored `background.service_worker` key on Firefox are expected and fine, that's the Chrome-only half of the intentional dual-key fallback).
 
 ## Enabling the privacy policy URL (GitHub Pages)
 
