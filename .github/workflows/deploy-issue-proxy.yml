@@ -1,0 +1,26 @@
+name: Deploy issue-proxy Worker
+
+# Only runs when files under server/issue-proxy/ actually change on main, so
+# unrelated pushes (docs, popup UI, rules) never trigger a deploy. Manual
+# workflow_dispatch is there for a redeploy with no code change (e.g. after
+# rotating GITHUB_TOKEN via `wrangler secret put`).
+on:
+  push:
+    branches: [main]
+    paths:
+      - "server/issue-proxy/**"
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: server/issue-proxy
+          command: deploy

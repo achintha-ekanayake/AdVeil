@@ -132,8 +132,8 @@ reportCancelBtn.addEventListener('click', () => {
 reportForm.addEventListener('submit', async (event) => {
   event.preventDefault();
 
-  if (!reportHappened.value.trim()) {
-    setReportStatus('Please describe what happened.', 'error');
+  if (reportHappened.value.trim().length < 20) {
+    setReportStatus('Please describe what happened in a bit more detail (20+ characters).', 'error');
     return;
   }
   if (!ISSUE_PROXY_URL) {

@@ -1,7 +1,11 @@
 /**
  * AdVeil issue-report proxy - lets the popup file a GitHub issue directly,
  * without a personal token. Holds the one GITHUB_TOKEN secret (see
- * README.md), accepts only { title, body, clientId }, rate-limited per client.
+ * README.md), accepts only { title, body, clientId }, rate-limited per
+ * client, and rejects reports whose free-text description is empty, too
+ * short, or looks like keyboard-mash junk (see looksLikeJunk). None of this
+ * confirms a report is *true* - that's still a human triage step, reflected
+ * by labeling every accepted report "needs-triage" rather than "bug".
  */
 
 const REPO = 'achintha-ekanayake/adveil';
@@ -9,11 +13,41 @@ const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const RATE_LIMIT_MAX = 3; // issues per window per client
 const TITLE_MAX = 200;
 const BODY_MAX = 4000;
+const BODY_MIN = 20; // below this, there's no room for an actual description
 
 const ALLOWED_ORIGIN_PATTERNS = [/^chrome-extension:\/\//, /^moz-extension:\/\//];
 
 function isAllowedOrigin(origin) {
   return !!origin && ALLOWED_ORIGIN_PATTERNS.some((re) => re.test(origin));
+}
+
+// Cheap, deliberately conservative junk filter - catches lazy spam and
+// keyboard-mash test submissions, not a determined attacker. Err on the
+// side of letting borderline text through rather than rejecting real
+// reports.
+function looksLikeJunk(text) {
+  const letters = text.replace(/[^a-zA-Z]/g, '');
+  if (letters.length < text.length * 0.25) return true; // mostly symbols/digits
+  const freq = {};
+  for (const ch of letters.toLowerCase()) freq[ch] = (freq[ch] || 0) + 1;
+  const maxFreq = Math.max(...Object.values(freq));
+  if (maxFreq / letters.length > 0.5) return true; // one letter dominates, e.g. "aaaaaaaa"
+  if (letters.length > 20) {
+    const vowels = (letters.match(/[aeiouAEIOU]/g) || []).length;
+    if (vowels / letters.length < 0.08) return true; // near-zero vowels -> keyboard mash
+  }
+  return false;
+}
+
+// The popup assembles `body` as structured markdown (see popup.js) wrapping
+// the user's actual free-text description between fixed section headers.
+// Junk-checking the whole thing would let real spam hide behind legitimate
+// boilerplate words like "Browser" and "Site URL", so pull out just the
+// user-authored "What happened" text when the expected format is present,
+// and fall back to the whole body for any other client/shape.
+function extractUserText(body) {
+  const match = body.match(/\*\*What happened\*\*:\n([\s\S]*?)\n\n\*\*What you expected\*\*:/);
+  return match ? match[1].trim() : body;
 }
 
 function corsHeaders(origin) {
@@ -68,6 +102,13 @@ export default {
     if (!body || body.length > BODY_MAX) {
       return new Response('Invalid body', { status: 400, headers: corsHeaders(origin) });
     }
+    const userText = extractUserText(body);
+    if (userText.length < BODY_MIN || looksLikeJunk(userText)) {
+      return new Response('Report looks incomplete - please add a real description of what happened.', {
+        status: 400,
+        headers: corsHeaders(origin)
+      });
+    }
 
     const rateKey = `rl:${clientId || request.headers.get('CF-Connecting-IP') || 'anon'}`;
     const allowed = await checkRateLimit(env.ISSUE_RATE_LIMIT_KV, rateKey);
@@ -86,7 +127,9 @@ export default {
       body: JSON.stringify({
         title,
         body: `${body}\n\n---\n_Filed automatically via the AdVeil extension's report form._`,
-        labels: ['bug', 'from-extension']
+        // "needs-triage", not "bug" - this hasn't been confirmed as a real
+        // defect yet, just accepted past automated spam/format checks.
+        labels: ['needs-triage', 'from-extension']
       })
     });
 

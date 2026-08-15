@@ -1,0 +1,38 @@
+name: Development check
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches-ignore: [main]
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: JS syntax check
+        run: |
+          set -e
+          git ls-files '*.js' | while read -r f; do node --check "$f"; done
+
+      - name: JSON validity check
+        run: |
+          set -e
+          git ls-files '*.json' | while read -r f; do node -e "JSON.parse(require('fs').readFileSync('$f', 'utf8'))"; done
+
+      - name: DNR ruleset up to date
+        run: |
+          npm run build
+          git diff --exit-code -- rules/generated/dnr-rules.json
+
+      - name: Test suite
+        run: npm test --if-present
+
+      - name: web-ext lint
+        run: npx --yes web-ext lint

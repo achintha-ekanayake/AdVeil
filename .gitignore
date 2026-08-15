@@ -9,3 +9,7 @@ node_modules/
 # Built store packages - attach these to a GitHub Release instead of
 # committing them; regenerate anytime with the steps in docs/store-listing.md.
 releases/*.zip
+
+# Chrome Web Store listing images (screenshots, promo tiles) - upload these
+# through the Developer Dashboard, don't commit them.
+store-assets/
