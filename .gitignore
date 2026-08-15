@@ -13,3 +13,7 @@ releases/*.zip
 # Chrome Web Store listing images (screenshots, promo tiles) - upload these
 # through the Developer Dashboard, don't commit them.
 store-assets/
+
+# wrangler's local cache - includes wrangler-account.json, which ties to
+# your Cloudflare account. Never commit it.
+.wrangler/
