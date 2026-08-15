@@ -1,11 +1,11 @@
-name: Build release packages
+name: Release
 
 on:
   release:
     types: [published]
 
 jobs:
-  build:
+  build-packages:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -47,3 +47,59 @@ jobs:
           files: |
             adveil-${{ steps.version.outputs.value }}-chrome.zip
             adveil-${{ steps.version.outputs.value }}-firefox.zip
+
+  update-contributors:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Sync CONTRIBUTORS.md against GitHub's contributor list
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+
+          # Logins currently listed in the file committed at the last release
+          # (empty if the file doesn't exist yet, e.g. the very first run).
+          if [ -f CONTRIBUTORS.md ]; then
+            grep -oP '(?<=\(https://github.com/)[^)]+' CONTRIBUTORS.md | sort -u > old-logins.txt
+          else
+            : > old-logins.txt
+          fi
+
+          # GitHub's contributor list is the source of truth. Regenerating
+          # the whole file from it (rather than patching the old one) means
+          # a hand-edited or tampered-with file gets corrected automatically,
+          # not just appended to.
+          gh api "repos/${{ github.repository }}/contributors" --paginate \
+            | jq -r '.[] | select(.type != "Bot") | .login' | sort -u > new-logins.txt
+
+          added=$(comm -13 old-logins.txt new-logins.txt)
+
+          {
+            echo "# Contributors"
+            echo
+            echo "Generated automatically from GitHub's contributor list on each release. Do not edit by hand."
+            echo
+            while read -r login; do
+              [ -n "$login" ] && echo "- [$login](https://github.com/$login)"
+            done < new-logins.txt
+          } > CONTRIBUTORS.md
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CONTRIBUTORS.md
+
+          if git diff --cached --quiet; then
+            echo "CONTRIBUTORS.md already up to date"
+          elif [ -n "$added" ]; then
+            git commit -m "chore: add contributor(s) $(echo "$added" | tr '\n' ' ') [skip ci]"
+            git push
+          else
+            git commit -m "chore: sync CONTRIBUTORS.md with GitHub contributor list [skip ci]"
+            git push
+          fi
