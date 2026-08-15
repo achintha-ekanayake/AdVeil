@@ -173,7 +173,7 @@ reportForm.addEventListener('submit', async (event) => {
       throw new Error(message || `Request failed (${response.status})`);
     }
 
-    setReportStatus('Thanks — issue submitted.', 'success');
+    setReportStatus('Thanks - issue submitted.', 'success');
     setTimeout(() => {
       reportForm.hidden = true;
       reportToggleBtn.hidden = false;

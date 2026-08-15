@@ -8,11 +8,11 @@ AdVeil is an open-source, cross-browser extension that blocks overlay ads, popun
 
 ## Features
 
-- **Overlay ad detection** — identifies and hides full-screen interstitials, sticky popups, anti-adblock nags, and cookie-wall-style overlays using a weighted heuristic engine, not a static selector list.
-- **Popunder / clickunder protection** — blocks scripts that hijack clicks to open ad, gambling, or scam redirects in a new tab, including instances triggered from embedded third-party iframes.
-- **Network-level blocking** — blocks requests to a curated list of known ad and tracker domains via `declarativeNetRequest`.
-- **Cosmetic filtering** — hides common ad containers (`.adsbygoogle`, banner slots, native ad widgets) via injected CSS.
-- **Per-site control** — global on/off toggle, per-site pause, and a one-click restore for pages affected by a false positive.
+- **Overlay ad detection** - identifies and hides full-screen interstitials, sticky popups, anti-adblock nags, and cookie-wall-style overlays using a weighted heuristic engine, not a static selector list.
+- **Popunder / clickunder protection** - blocks scripts that hijack clicks to open ad, gambling, or scam redirects in a new tab, including instances triggered from embedded third-party iframes.
+- **Network-level blocking** - blocks requests to a curated list of known ad and tracker domains via `declarativeNetRequest`.
+- **Cosmetic filtering** - hides common ad containers (`.adsbygoogle`, banner slots, native ad widgets) via injected CSS.
+- **Per-site control** - global on/off toggle, per-site pause, and a one-click restore for pages affected by a false positive.
 
 ## Installation
 
@@ -32,11 +32,11 @@ AdVeil is not yet published to the Chrome Web Store or Firefox Add-ons. Install 
 
 Click the toolbar icon to open the popup:
 
-- **Protection** — global on/off toggle.
-- **Paused on \<site\>** — disables filtering for the current site only.
-- **Blocked count** — number of ads removed on the current page.
-- **Restore hidden elements** — reverses hides on the current page, for sites affected by a false positive.
-- **Report an issue** — files a GitHub issue directly from the popup (site, browser, and extension version attached automatically), with no need to visit GitHub.
+- **Protection** - global on/off toggle.
+- **Paused on \<site\>** - disables filtering for the current site only.
+- **Blocked count** - number of ads removed on the current page.
+- **Restore hidden elements** - reverses hides on the current page, for sites affected by a false positive.
+- **Report an issue** - files a GitHub issue directly from the popup (site, browser, and extension version attached automatically), with no need to visit GitHub.
 
 ## Project structure
 
@@ -70,7 +70,7 @@ For design rationale, architecture decisions, and a record of issues found durin
 
 ## Known limitations
 
-- The network and cosmetic filter lists are curated, not a full EasyList/EasyPrivacy import — coverage is intentionally narrower than established ad blockers.
+- The network and cosmetic filter lists are curated, not a full EasyList/EasyPrivacy import - coverage is intentionally narrower than established ad blockers.
 - Ads served through ad-blocker-circumvention networks that rotate delivery domains per request can evade static domain blocking.
 - The overlay engine and cosmetic filter run in the top frame only; the popunder guard runs in all frames, including dynamically created ones.
 - Detection uses a fixed scoring threshold rather than a user-configurable sensitivity setting.
