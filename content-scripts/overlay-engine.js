@@ -105,6 +105,24 @@ function oabContainsAdIframe(el) {
   return false;
 }
 
+// role="dialog"/"alertdialog"/"listbox", on the candidate or a wrapped
+// descendant - real ads don't bother with these. aria-modal="true" used to
+// be required alongside dialog/alertdialog, but real dialogs don't reliably
+// set it (see Finding 14) - role alone is enough. See also Findings 11-12.
+const OAB_ACCESSIBLE_WIDGET_SELECTOR = '[role="dialog"], [role="alertdialog"], [role="listbox"]';
+
+function oabHasAccessibleWidgetSemantics(el) {
+  if (el.matches && el.matches(OAB_ACCESSIBLE_WIDGET_SELECTOR)) return true;
+  return !!(el.querySelector && el.querySelector(OAB_ACCESSIBLE_WIDGET_SELECTOR));
+}
+
+// aria-hidden="true" + no text content: a decorative interaction-blocking
+// scrim/backdrop (e.g. a popup or drawer's inert backdrop), not an ad - a
+// real nag always has visible persuasive text. See Finding 13.
+function oabIsDecorativeAriaHiddenScrim(el) {
+  return el.getAttribute('aria-hidden') === 'true' && el.textContent.trim() === '';
+}
+
 function oabScoreElement(el) {
   const style = getComputedStyle(el);
   const signals = {};
@@ -253,6 +271,8 @@ function oabIsEligibleCandidate(el) {
   // blanked an entire real page (see plan.md Finding 8) - exclude unconditionally.
   if (el === document.documentElement || el === document.body) return false;
   if (el.hasAttribute('data-oab-hidden-by')) return false; // dedupe (incl. cosmetic-filter hits)
+  if (oabHasAccessibleWidgetSemantics(el)) return false; // see Findings 11-12
+  if (oabIsDecorativeAriaHiddenScrim(el)) return false; // see Finding 13
   const w = el.offsetWidth;
   const h = el.offsetHeight;
   return w >= OAB_MIN_CANDIDATE_SIZE && h >= OAB_MIN_CANDIDATE_SIZE;

@@ -27,6 +27,10 @@ Cross-browser overlay + ad blocker extension (Manifest V3).
   - [Finding 8: The entire page - `<body>` itself - got hidden](#finding-8-the-entire-page---body-itself---got-hidden)
   - [Finding 9: A WordPress theme's main content wrapper got hidden, collapsing the page to zero height](#finding-9-a-wordpress-themes-main-content-wrapper-got-hidden-collapsing-the-page-to-zero-height)
   - [Finding 10: Cloudflare's own dashboard drawer got hidden, blocking a deployment step](#finding-10-cloudflares-own-dashboard-drawer-got-hidden-blocking-a-deployment-step)
+  - [Finding 11: MUI docs' "Settings" drawer got hidden via the scroll-lock signal](#finding-11-mui-docs-settings-drawer-got-hidden-via-the-scroll-lock-signal)
+  - [Finding 12: Cloudflare's Kumo-design-system Select dropdown got hidden](#finding-12-cloudflares-kumo-design-system-select-dropdown-got-hidden)
+  - [Finding 13: Base UI's inert popup/drawer backdrop got hidden](#finding-13-base-uis-inert-popupdrawer-backdrop-got-hidden)
+  - [Finding 14: a real dialog without aria-modal slipped past the Finding 11 exclusion](#finding-14-a-real-dialog-without-aria-modal-slipped-past-the-finding-11-exclusion)
 
 ## Context
 
@@ -88,9 +92,9 @@ Add-blocker/
 - **Attach timing**: the script runs at `document_start`, where `document.body` does not exist yet. A one-shot `readystatechange`/`DOMContentLoaded` listener (with a `requestAnimationFrame` fallback) attaches the `MutationObserver` to `document.body` only once it exists.
 - **MutationObserver**, debounced ~200ms batching, pre-filtered to reasonably-sized block elements (`offsetWidth/Height >= 50`) before scoring. Supplemented by a periodic shallow rescan (catches display-toggle-only overlays that don't add new nodes) on a **decaying schedule** (1s, 3s, 6s, 10s, then stop) rather than a fixed long-running cadence. Paused entirely when the tab is hidden.
 - **Hide, not remove**: `element.style.setProperty('display', 'none', 'important')` directly on the element, not an injected class (inline `!important` reliably beats page stylesheet specificity). Reversible, and won't break page JS holding references. Hidden elements are recorded for a same-page "restore hidden elements" popup action.
-- **Absolute exclusion**: `document.documentElement` and `document.body` are never eligible candidates, regardless of score or signals - see Finding 8.
+- **Absolute exclusion**: `document.documentElement` and `document.body` are never eligible candidates, regardless of score or signals - see Finding 8. Elements with (or wrapping) `role="dialog"`/`role="alertdialog"`/`role="listbox"` are excluded the same way - see Findings 11-12 and 14 (the `aria-modal="true"` co-requirement Finding 11 originally added was dropped in Finding 14). Empty `aria-hidden="true"` scrims are excluded too - see Finding 13.
 - **Whitelist/enabled short-circuit**: checked first, before attaching any observer - global `enabled` flag and per-site `siteWhitelist` (hostname list) in `chrome.storage.local`.
-- **Confirmation gate** (added in Finding 6): clearing `OAB_HIDE_THRESHOLD` is necessary but not sufficient. The element must also trip at least one *distinctive* signal - `scrollLock`, `keyword`, `adIframe`, `standardAdSize`, or the strong z-index tier (`>=1000`). Weak/common signals (low z-index, "appeared late", position+coverage alone) do not qualify on their own - see Findings 6-8 for why this exists and its limits.
+- **Confirmation gate** (added in Finding 6): clearing `OAB_HIDE_THRESHOLD` is necessary but not sufficient. The element must also trip at least one *distinctive* signal - `scrollLock`, `keyword`, `adIframe`, `standardAdSize`, or the strong z-index tier (`>=9999`, raised from `>=1000` - see Finding 10). Weak/common signals (low z-index, "appeared late", position+coverage alone) do not qualify on their own - see Findings 6-8 for why this exists and its limits. `scrollLock` in particular is a weaker discriminator than it looks - real accessible modals correlate their own insertion with a body scroll-lock just as reliably as a fake nag does, which is exactly what Finding 11 is about.
 - **Keyword list is deliberately narrow and evidence-driven**: `paywall` and `overlay` were both removed after being confirmed as false-positive sources (Findings 3 and 7) rather than being generically "ad-related" words. `popup` remains, flagged as carrying similar risk but not yet confirmed as a problem - see Finding 7.
 - **`OAB_DEBUG`** constant (off by default): when true, logs the full per-signal score breakdown (not just the summed total) for every evaluated candidate, used throughout the Findings Log to diagnose false positives.
 
@@ -211,4 +215,32 @@ Real defects found via live-site testing, in order discovered. Read before chang
 - Symptom: a Cloudflare dashboard settings panel wouldn't open while deploying `server/issue-proxy`.
 - Cause: `position(3) + zIndex(2, >=1000 tier) + delayed(1) = 6` qualified via z-index alone - Cloudflare's own design system uses z-index 1150 for this legitimate drawer.
 - Fix: the qualifying z-index bar raised from >=1000 to only the most extreme tier (>=9999).
+- Status: Fixed.
+
+### Finding 11: MUI docs' "Settings" drawer got hidden via the scroll-lock signal
+
+- Symptom: on mui.com/material-ui/all-components/, clicking the toolbar's settings icon opened nothing - the `MuiDrawer-root`/`MuiModal-root` wrapper had `display: none` with `data-oab-hidden-by="heuristic"`.
+- Cause: `position(3) + zIndex(2, >=1000 tier) + coverage(4) + scrollLock(3) + delayed(1) = 13`, well past the threshold, and qualified via `scrollLock` - MUI's Modal correctly locks body scroll within the same tick it inserts the modal, exactly the correlation the `scrollLock` signal is designed to detect. Finding 10's z-index fix didn't help here since z-index alone wasn't why it qualified. Any correctly-built accessible modal/drawer (MUI, Radix, Headless UI, Bootstrap, ...) triggers this same combination - `scrollLock` turns out to be a weak discriminator between "real ad nag" and "any modern accessible dialog."
+- Fix: added an absolute exclusion (alongside `<body>`/`<html>` from Finding 8) for `role="dialog"`/`role="alertdialog"` + `aria-modal="true"`, on the candidate or a wrapped descendant.
+- Status: Fixed.
+
+### Finding 12: Cloudflare's Kumo-design-system Select dropdown got hidden
+
+- Symptom: a Select dropdown on Cloudflare's own dashboard stayed hidden after being opened.
+- Cause: same class of issue as Finding 11 - a legitimate widget tripping ad-overlay signals. Element was `role="listbox"`, a distinct ARIA widget pattern real ads don't implement.
+- Fix: extended the Finding 11 exclusion (renamed `oabHasAccessibleWidgetSemantics`) to also cover `role="listbox"`.
+- Status: Fixed.
+
+### Finding 13: Base UI's inert popup/drawer backdrop got hidden
+
+- Symptom: two more Cloudflare dashboard elements got hidden - an empty full-viewport click-blocker and a drawer's dimming backdrop, both from Base UI's popup internals, siblings of the actual popup rather than wrappers around it (so Finding 12's exclusion never saw them).
+- Cause: both were `position: fixed; inset: 0`, correctly marked `aria-hidden="true"` and empty of text - a real ad nag is never empty of content, since its entire purpose is to be read.
+- Fix: new exclusion for `aria-hidden="true"` elements with no text content (`oabIsDecorativeAriaHiddenScrim`).
+- Status: Fixed.
+
+### Finding 14: a real dialog without aria-modal slipped past the Finding 11 exclusion
+
+- Symptom: Cloudflare's "Connect to a repository" drawer stayed hidden after opening.
+- Cause: `role="dialog"` was present, but not `aria-modal="true"` - Finding 11's exclusion required both, and real dialogs don't reliably set the latter.
+- Fix: dropped the `aria-modal="true"` co-requirement; `role="dialog"`/`"alertdialog"`/`"listbox"` alone is now sufficient.
 - Status: Fixed.
