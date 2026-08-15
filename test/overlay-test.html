@@ -95,6 +95,24 @@
     padding: 0.5rem 0;
   }
   .legit-a11y-listbox-panel [role="option"] { padding: 0.5rem 1rem; }
+  /* Negative control 6: decorative inert scrim (aria-hidden, no text). See Finding 13. */
+  .legit-a11y-scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+  }
+  /* Negative control 7: dialog role with no aria-modal. See Finding 14. */
+  .legit-a11y-drawer-root {
+    position: fixed;
+    inset: 0;
+  }
+  .legit-a11y-drawer-panel {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    background: white;
+    padding: 1.5rem;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.2);
+  }
 </style>
 </head>
 <body>
@@ -119,6 +137,8 @@
     <li><strong>Negative controls 1-3</strong> - a login-style modal, a cookie-consent banner, and a paywall strip are all present from page load, with no ad-keyword classes and no scroll-lock. These must remain visible - if any disappear, the heuristic is over-triggering.</li>
     <li><strong>Negative control 4</strong> - an accessible modal drawer (<code>role="dialog"</code>, <code>aria-modal="true"</code>) appears after 3s with a body scroll-lock, full-viewport fixed wrapper, and z-index 1300 - deliberately reproducing every signal a real anti-adblock nag has (see Finding 11: the MUI docs "Settings" drawer false positive). Must remain visible.</li>
     <li><strong>Negative control 5</strong> - a Select-style dropdown (<code>role="listbox"</code>, wrapped in a plain <code>role="presentation"</code> positioning div) appears after 3.5s with the same fixed/coverage/delayed signals (see Finding 12: Cloudflare's Kumo-design-system Select). Must remain visible.</li>
+    <li><strong>Negative control 6</strong> - an empty, <code>aria-hidden="true"</code> full-viewport scrim (no text content) appears after 4s (see Finding 13: Base UI's inert popup/drawer backdrop). Must remain visible.</li>
+    <li><strong>Negative control 7</strong> - a bottom drawer with <code>role="dialog"</code> but no <code>aria-modal</code>, scroll-locked, appears after 4.5s (see Finding 14: Cloudflare's "Connect to a repository" drawer). Must remain visible.</li>
   </ul>
 
   <p>Set <code>OAB_DEBUG = true</code> at the top of overlay-engine.js to see the per-signal score breakdown for every evaluated element in the console.</p>
@@ -211,6 +231,34 @@
       document.getElementById('fixture-mount').appendChild(root);
       console.log('[fixture] negative control 5 injected (Select-style listbox dropdown)');
     }, 3500);
+
+    // Negative control 6: empty aria-hidden scrim, delayed, fixed + full
+    // coverage, no text content. Should be exempted. See Finding 13.
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'legit-a11y-scrim';
+      el.setAttribute('role', 'presentation');
+      el.setAttribute('aria-hidden', 'true');
+      document.getElementById('fixture-mount').appendChild(el);
+      console.log('[fixture] negative control 6 injected (decorative aria-hidden scrim)');
+    }, 4000);
+
+    // Negative control 7: role="dialog" drawer, no aria-modal, delayed,
+    // with a real scroll-lock. Should be exempted via role="dialog" alone.
+    // See Finding 14.
+    setTimeout(() => {
+      document.body.style.overflow = 'hidden';
+      const root = document.createElement('div');
+      root.className = 'legit-a11y-drawer-root';
+      root.setAttribute('role', 'presentation');
+      root.innerHTML = `
+        <div class="legit-a11y-drawer-panel" role="dialog" aria-labelledby="drawer-title">
+          <h3 id="drawer-title">Connect to a repository</h3>
+          <p>This is a normal drawer (role="dialog", no aria-modal). It should never be hidden.</p>
+        </div>`;
+      document.getElementById('fixture-mount').appendChild(root);
+      console.log('[fixture] negative control 7 injected (dialog role, no aria-modal, scroll-lock)');
+    }, 4500);
   </script>
 </body>
 </html>
