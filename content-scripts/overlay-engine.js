@@ -105,16 +105,20 @@ function oabContainsAdIframe(el) {
   return false;
 }
 
-// role="dialog"/"alertdialog" + aria-modal="true" (candidate or a wrapped
-// descendant) - real ads don't bother with this. See Finding 11.
-function oabHasAccessibleDialogSemantics(el) {
-  const isDialog = (node) =>
+// Dialog (role="dialog"/"alertdialog" + aria-modal="true") or listbox
+// (role="listbox", e.g. a Select dropdown) semantics, on the candidate or a
+// wrapped descendant - real ads don't bother with either. See Findings 11-12.
+function oabHasAccessibleWidgetSemantics(el) {
+  const isModalDialog = (node) =>
     (node.getAttribute('role') === 'dialog' || node.getAttribute('role') === 'alertdialog') &&
     node.getAttribute('aria-modal') === 'true';
-  if (isDialog(el)) return true;
+  const isListbox = (node) => node.getAttribute('role') === 'listbox';
+  if (isModalDialog(el) || isListbox(el)) return true;
   return !!(
     el.querySelector &&
-    el.querySelector('[role="dialog"][aria-modal="true"], [role="alertdialog"][aria-modal="true"]')
+    el.querySelector(
+      '[role="dialog"][aria-modal="true"], [role="alertdialog"][aria-modal="true"], [role="listbox"]'
+    )
   );
 }
 
@@ -266,7 +270,7 @@ function oabIsEligibleCandidate(el) {
   // blanked an entire real page (see plan.md Finding 8) - exclude unconditionally.
   if (el === document.documentElement || el === document.body) return false;
   if (el.hasAttribute('data-oab-hidden-by')) return false; // dedupe (incl. cosmetic-filter hits)
-  if (oabHasAccessibleDialogSemantics(el)) return false; // see Finding 11
+  if (oabHasAccessibleWidgetSemantics(el)) return false; // see Findings 11-12
   const w = el.offsetWidth;
   const h = el.offsetHeight;
   return w >= OAB_MIN_CANDIDATE_SIZE && h >= OAB_MIN_CANDIDATE_SIZE;

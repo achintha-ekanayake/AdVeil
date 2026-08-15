@@ -79,6 +79,22 @@
     padding: 1.5rem;
     box-shadow: -4px 0 24px rgba(0,0,0,0.2);
   }
+  /* Negative control 5: Select-style dropdown (role="listbox"). See Finding 12. */
+  .legit-a11y-listbox-root {
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+  }
+  .legit-a11y-listbox-panel {
+    position: absolute;
+    top: 40%; left: 40%;
+    width: 260px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    padding: 0.5rem 0;
+  }
+  .legit-a11y-listbox-panel [role="option"] { padding: 0.5rem 1rem; }
 </style>
 </head>
 <body>
@@ -102,6 +118,7 @@
     <li><strong>Positive #2</strong> - a sticky bottom banner (<code>#ad-banner-sticky</code>) appears after 2.5s. Mid-range score - useful for threshold tuning; may or may not clear the bar depending on OAB_HIDE_THRESHOLD.</li>
     <li><strong>Negative controls 1-3</strong> - a login-style modal, a cookie-consent banner, and a paywall strip are all present from page load, with no ad-keyword classes and no scroll-lock. These must remain visible - if any disappear, the heuristic is over-triggering.</li>
     <li><strong>Negative control 4</strong> - an accessible modal drawer (<code>role="dialog"</code>, <code>aria-modal="true"</code>) appears after 3s with a body scroll-lock, full-viewport fixed wrapper, and z-index 1300 - deliberately reproducing every signal a real anti-adblock nag has (see Finding 11: the MUI docs "Settings" drawer false positive). Must remain visible.</li>
+    <li><strong>Negative control 5</strong> - a Select-style dropdown (<code>role="listbox"</code>, wrapped in a plain <code>role="presentation"</code> positioning div) appears after 3.5s with the same fixed/coverage/delayed signals (see Finding 12: Cloudflare's Kumo-design-system Select). Must remain visible.</li>
   </ul>
 
   <p>Set <code>OAB_DEBUG = true</code> at the top of overlay-engine.js to see the per-signal score breakdown for every evaluated element in the console.</p>
@@ -177,6 +194,23 @@
       document.getElementById('fixture-mount').appendChild(root);
       console.log('[fixture] negative control 4 injected (accessible modal drawer + scroll-lock)');
     }, 3000);
+
+    // Negative control 5: Select-style dropdown, delayed, fixed + full
+    // coverage. Should be exempted via the wrapped role="listbox". See
+    // Finding 12.
+    setTimeout(() => {
+      const root = document.createElement('div');
+      root.className = 'legit-a11y-listbox-root';
+      root.setAttribute('role', 'presentation');
+      root.innerHTML = `
+        <div class="legit-a11y-listbox-panel" role="listbox">
+          <div role="option" aria-selected="true">Default</div>
+          <div role="option" aria-selected="false">Smart</div>
+          <div role="option" aria-selected="false">Region</div>
+        </div>`;
+      document.getElementById('fixture-mount').appendChild(root);
+      console.log('[fixture] negative control 5 injected (Select-style listbox dropdown)');
+    }, 3500);
   </script>
 </body>
 </html>
