@@ -1,6 +1,6 @@
 {
   "name": "adveil",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Open-source, cross-browser (Chrome + Firefox) extension that blocks overlay ads, popunder redirects, and trackers using heuristic detection and a curated filter list.",
   "private": true,
   "scripts": {
