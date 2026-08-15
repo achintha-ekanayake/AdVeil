@@ -1,0 +1,49 @@
+name: Build release packages
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Regenerate DNR rules
+        run: npm run build
+
+      - name: Stage runtime files
+        run: |
+          mkdir -p stage/rules/generated
+          cp manifest.json LICENSE stage/
+          cp -r background content-scripts popup icons stage/
+          cp rules/generated/dnr-rules.json stage/rules/generated/
+
+      - id: version
+        run: echo "value=$(node -p "require('./manifest.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Build Chrome package
+        run: (cd stage && zip -r -X "../adveil-${{ steps.version.outputs.value }}-chrome.zip" . -x '.*')
+
+      - name: web-ext lint
+        run: npx --yes web-ext lint --source-dir=stage
+
+      - name: Build Firefox package
+        run: |
+          npx --yes web-ext build --source-dir=stage --artifacts-dir=artifacts --overwrite-dest
+          mv "artifacts/adveil-${{ steps.version.outputs.value }}.zip" "adveil-${{ steps.version.outputs.value }}-firefox.zip"
+
+      - name: Attach packages to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          files: |
+            adveil-${{ steps.version.outputs.value }}-chrome.zip
+            adveil-${{ steps.version.outputs.value }}-firefox.zip
