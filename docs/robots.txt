@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://achintha-ekanayake.github.io/AdVeil/sitemap.xml
