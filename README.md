@@ -36,7 +36,7 @@ Click the toolbar icon to open the popup:
 - **Paused on \<site\>** - disables filtering for the current site only.
 - **Blocked count** - number of ads removed on the current page.
 - **Restore hidden elements** - reverses hides on the current page, for sites affected by a false positive.
-- **Report an issue** - files a GitHub issue directly from the popup (site, browser, and extension version attached automatically), with no need to visit GitHub.
+- **Report an issue** - files a GitHub issue directly from the popup (site, browser, and extension version attached automatically), with no need to visit GitHub. This talks to a small self-hosted backend ([`server/issue-proxy/`](server/issue-proxy/README.md)) that holds the GitHub token; forks won't have this working until they deploy their own instance.
 
 ## Project structure
 
