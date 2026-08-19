@@ -31,6 +31,7 @@ Cross-browser overlay + ad blocker extension (Manifest V3).
   - [Finding 12: Cloudflare's Kumo-design-system Select dropdown got hidden](#finding-12-cloudflares-kumo-design-system-select-dropdown-got-hidden)
   - [Finding 13: Base UI's inert popup/drawer backdrop got hidden](#finding-13-base-uis-inert-popupdrawer-backdrop-got-hidden)
   - [Finding 14: a real dialog without aria-modal slipped past the Finding 11 exclusion](#finding-14-a-real-dialog-without-aria-modal-slipped-past-the-finding-11-exclusion)
+  - [Finding 15: HackerRank's profile dropdown (Radix `role="menu"`) got hidden](#finding-15-hackerranks-profile-dropdown-radix-rolemenu-got-hidden)
 
 ## Context
 
@@ -92,7 +93,7 @@ Add-blocker/
 - **Attach timing**: the script runs at `document_start`, where `document.body` does not exist yet. A one-shot `readystatechange`/`DOMContentLoaded` listener (with a `requestAnimationFrame` fallback) attaches the `MutationObserver` to `document.body` only once it exists.
 - **MutationObserver**, debounced ~200ms batching, pre-filtered to reasonably-sized block elements (`offsetWidth/Height >= 50`) before scoring. Supplemented by a periodic shallow rescan (catches display-toggle-only overlays that don't add new nodes) on a **decaying schedule** (1s, 3s, 6s, 10s, then stop) rather than a fixed long-running cadence. Paused entirely when the tab is hidden.
 - **Hide, not remove**: `element.style.setProperty('display', 'none', 'important')` directly on the element, not an injected class (inline `!important` reliably beats page stylesheet specificity). Reversible, and won't break page JS holding references. Hidden elements are recorded for a same-page "restore hidden elements" popup action.
-- **Absolute exclusion**: `document.documentElement` and `document.body` are never eligible candidates, regardless of score or signals - see Finding 8. Elements with (or wrapping) `role="dialog"`/`role="alertdialog"`/`role="listbox"` are excluded the same way - see Findings 11-12 and 14 (the `aria-modal="true"` co-requirement Finding 11 originally added was dropped in Finding 14). Empty `aria-hidden="true"` scrims are excluded too - see Finding 13.
+- **Absolute exclusion**: `document.documentElement` and `document.body` are never eligible candidates, regardless of score or signals - see Finding 8. Elements with (or wrapping) `role="dialog"`/`role="alertdialog"`/`role="listbox"`/`role="menu"`/`role="menubar"` are excluded the same way - see Findings 11-12, 14 and 15 (the `aria-modal="true"` co-requirement Finding 11 originally added was dropped in Finding 14). Empty `aria-hidden="true"` scrims are excluded too - see Finding 13.
 - **Whitelist/enabled short-circuit**: checked first, before attaching any observer - global `enabled` flag and per-site `siteWhitelist` (hostname list) in `chrome.storage.local`.
 - **Confirmation gate** (added in Finding 6): clearing `OAB_HIDE_THRESHOLD` is necessary but not sufficient. The element must also trip at least one *distinctive* signal - `scrollLock`, `keyword`, `adIframe`, `standardAdSize`, or the strong z-index tier (`>=9999`, raised from `>=1000` - see Finding 10). Weak/common signals (low z-index, "appeared late", position+coverage alone) do not qualify on their own - see Findings 6-8 for why this exists and its limits. `scrollLock` in particular is a weaker discriminator than it looks - real accessible modals correlate their own insertion with a body scroll-lock just as reliably as a fake nag does, which is exactly what Finding 11 is about.
 - **Keyword list is deliberately narrow and evidence-driven**: `paywall` and `overlay` were both removed after being confirmed as false-positive sources (Findings 3 and 7) rather than being generically "ad-related" words. `popup` remains, flagged as carrying similar risk but not yet confirmed as a problem - see Finding 7.
@@ -243,4 +244,12 @@ Real defects found via live-site testing, in order discovered. Read before chang
 - Symptom: Cloudflare's "Connect to a repository" drawer stayed hidden after opening.
 - Cause: `role="dialog"` was present, but not `aria-modal="true"` - Finding 11's exclusion required both, and real dialogs don't reliably set the latter.
 - Fix: dropped the `aria-modal="true"` co-requirement; `role="dialog"`/`"alertdialog"`/`"listbox"` alone is now sufficient.
+- Status: Fixed.
+
+### Finding 15: HackerRank's profile dropdown (Radix `role="menu"`) got hidden
+
+- Symptom: on hackerrank.com/dashboard, the avatar dropdown (Profile / Settings / Logout / ...) opened to nothing. The hidden element was Radix UI's `div[data-radix-popper-content-wrapper]`, carrying `data-oab-hidden-by="heuristic"`.
+- Cause: `position(3, fixed) + scrollLock(3) + delayed(1) = 7`, qualifying via `scrollLock` - Radix's `DropdownMenu` is `modal` by default, so it locks body scroll in the same tick it mounts the menu. Note this cleared the threshold on `position` + `scrollLock` alone: the wrapper has `z-index: auto` and a dropdown's coverage is far under 15%, so neither of those signals contributed. The Findings 11-14 exclusion didn't catch it because the wrapper itself is a bare positioning div (no role), and the descendant it wraps is `role="menu"` - a role the exclusion list didn't cover.
+- Fix: extended `OAB_ACCESSIBLE_WIDGET_SELECTOR` to also cover `role="menu"` and `role="menubar"`. Regression fixture added as negative control 8 in `test/overlay-test.html`.
+- Note: this is the fourth false positive (11, 12, 14, 15) with the same shape - a legitimate ARIA widget tripping `scrollLock` - and each has been fixed by naming one more role. Enumerating roles is reactive; if a fifth appears, consider inverting the rule (exempt any candidate wrapping a non-`presentation` interactive ARIA role) rather than extending the list again.
 - Status: Fixed.

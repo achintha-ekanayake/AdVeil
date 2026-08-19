@@ -33,11 +33,11 @@ jobs:
         run: (cd stage && zip -r -X "../adveil-${{ steps.version.outputs.value }}-chrome.zip" . -x '.*')
 
       - name: web-ext lint
-        run: npx --yes web-ext lint --source-dir=stage
+        run: npx --yes web-ext@10 lint --source-dir=stage
 
       - name: Build Firefox package
         run: |
-          npx --yes web-ext build --source-dir=stage --artifacts-dir=artifacts --overwrite-dest
+          npx --yes web-ext@10 build --source-dir=stage --artifacts-dir=artifacts --overwrite-dest
           mv "artifacts/adveil-${{ steps.version.outputs.value }}.zip" "adveil-${{ steps.version.outputs.value }}-firefox.zip"
 
       - name: Attach packages to the release
@@ -47,15 +47,6 @@ jobs:
           files: |
             adveil-${{ steps.version.outputs.value }}-chrome.zip
             adveil-${{ steps.version.outputs.value }}-firefox.zip
-
-      - name: Publish to Chrome Web Store
-        env:
-          EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
-          PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
-          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
-          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
-        run: npx --yes chrome-webstore-upload-cli --source "adveil-${{ steps.version.outputs.value }}-chrome.zip"
 
   update-contributors:
     runs-on: ubuntu-latest

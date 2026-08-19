@@ -1,0 +1,76 @@
+name: Publish to Chrome Web Store
+
+# Manual and upload-only: the release workflow builds the packages, this
+# pushes one to the store as a draft. A bare CLI call (no `upload`
+# subcommand) would upload *and* submit for review.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to upload (e.g. v1.0.3). Defaults to the latest release.'
+        required: false
+        type: string
+
+jobs:
+  upload-draft:
+    runs-on: ubuntu-latest
+    environment: chrome-web-store
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Uses the zip attached to the release, so what reaches the store is
+      # byte-identical to what people downloaded from GitHub.
+      - name: Download the Chrome package from the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$TAG" ]; then
+            TAG=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)
+            echo "No tag given, using latest release: $TAG"
+          fi
+
+          gh release download "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern '*-chrome.zip' \
+            --dir package
+
+          count=$(find package -name '*-chrome.zip' | wc -l)
+          if [ "$count" -ne 1 ]; then
+            echo "Expected exactly 1 *-chrome.zip asset on $TAG, found $count" >&2
+            exit 1
+          fi
+
+          echo "ZIP=$(find package -name '*-chrome.zip')" >> "$GITHUB_ENV"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+
+      - name: Show what is about to be uploaded
+        run: |
+          set -euo pipefail
+          version=$(unzip -p "$ZIP" manifest.json | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version")
+          echo "tag=$TAG manifest.version=$version"
+
+      # Pinned major - this step holds the store refresh token.
+      - name: Upload draft to the Chrome Web Store
+        env:
+          EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+        run: npx --yes chrome-webstore-upload-cli@4 upload --source "$ZIP"
+
+      - name: Summary
+        run: |
+          {
+            echo "### Uploaded \`$ZIP\` from \`$TAG\` as a draft"
+            echo
+            echo "Not submitted for review - do that from the [Developer Dashboard](https://chrome.google.com/webstore/devconsole)."
+          } >> "$GITHUB_STEP_SUMMARY"

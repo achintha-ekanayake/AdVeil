@@ -1,0 +1,80 @@
+name: Publish to Firefox Add-ons
+
+# Manual, and unlike the Chrome flow this submits for review immediately -
+# AMO has no draft state, an upload to the listed channel is the submission.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to submit (e.g. v1.0.3). Defaults to the latest release.'
+        required: false
+        type: string
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    environment: firefox-amo
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # web-ext sign takes a directory, not a zip, so the release asset is
+      # unpacked and re-signed - content-identical, not byte-identical.
+      - name: Download and unpack the Firefox package
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$TAG" ]; then
+            TAG=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)
+            echo "No tag given, using latest release: $TAG"
+          fi
+
+          gh release download "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern '*-firefox.zip' \
+            --dir package
+
+          count=$(find package -name '*-firefox.zip' | wc -l)
+          if [ "$count" -ne 1 ]; then
+            echo "Expected exactly 1 *-firefox.zip asset on $TAG, found $count" >&2
+            exit 1
+          fi
+
+          unzip -q "$(find package -name '*-firefox.zip')" -d unpacked
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+
+      - name: Show what is about to be submitted
+        run: |
+          set -euo pipefail
+          version=$(node -p "require('./unpacked/manifest.json').version")
+          echo "tag=$TAG manifest.version=$version"
+
+      - name: Lint before submitting
+        run: npx --yes web-ext@10 lint --source-dir=unpacked
+
+      # approval-timeout=0 returns as soon as the upload is accepted; AMO
+      # review is asynchronous and can take days.
+      - name: Submit to AMO
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          npx --yes web-ext@10 sign \
+            --source-dir=unpacked \
+            --channel=listed \
+            --approval-timeout=0
+
+      - name: Summary
+        run: |
+          {
+            echo "### Submitted \`$TAG\` to AMO (listed channel)"
+            echo
+            echo "Now queued for Mozilla review - track it in the [Developer Hub](https://addons.mozilla.org/developers/addons)."
+          } >> "$GITHUB_STEP_SUMMARY"

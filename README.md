@@ -16,7 +16,10 @@ AdVeil is an open-source, cross-browser extension that blocks overlay ads, popun
 
 ## Installation
 
-AdVeil is not yet published to the Chrome Web Store or Firefox Add-ons. Install it manually from source:
+- **Chrome / Chromium / Edge**: [install from the Chrome Web Store](https://chromewebstore.google.com/detail/adveil/klfjblcfnhfplgmacacfanaigeiimbje).
+- **Firefox**: [install from Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/adveil-adblocker/).
+
+To run an unpacked build from source instead:
 
 **Chrome / Chromium / Edge**
 1. Open `chrome://extensions`.

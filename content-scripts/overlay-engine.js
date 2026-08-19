@@ -105,11 +105,13 @@ function oabContainsAdIframe(el) {
   return false;
 }
 
-// role="dialog"/"alertdialog"/"listbox", on the candidate or a wrapped
-// descendant - real ads don't bother with these. aria-modal="true" used to
-// be required alongside dialog/alertdialog, but real dialogs don't reliably
-// set it (see Finding 14) - role alone is enough. See also Findings 11-12.
-const OAB_ACCESSIBLE_WIDGET_SELECTOR = '[role="dialog"], [role="alertdialog"], [role="listbox"]';
+// role="dialog"/"alertdialog"/"listbox"/"menu"/"menubar", on the candidate
+// or a wrapped descendant - real ads don't bother with these. aria-modal="true"
+// used to be required alongside dialog/alertdialog, but real dialogs don't
+// reliably set it (see Finding 14) - role alone is enough. See also
+// Findings 11-12 and 15 (Radix dropdown menus).
+const OAB_ACCESSIBLE_WIDGET_SELECTOR =
+  '[role="dialog"], [role="alertdialog"], [role="listbox"], [role="menu"], [role="menubar"]';
 
 function oabHasAccessibleWidgetSemantics(el) {
   if (el.matches && el.matches(OAB_ACCESSIBLE_WIDGET_SELECTOR)) return true;
