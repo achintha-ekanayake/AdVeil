@@ -113,6 +113,21 @@
     padding: 1.5rem;
     box-shadow: 0 -4px 24px rgba(0,0,0,0.2);
   }
+  /* Negative control 8: Radix-style popper wrapper (role="menu"). See Finding 15. */
+  .legit-a11y-menu-root {
+    position: fixed;
+    left: 0; top: 0;
+    transform: translate3d(352px, 57px, 0px);
+    min-width: max-content;
+    z-index: auto;
+  }
+  .legit-a11y-menu-panel {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    padding: 0.5rem 0;
+  }
+  .legit-a11y-menu-panel [role="menuitem"] { padding: 0.5rem 2rem 0.5rem 1rem; }
 </style>
 </head>
 <body>
@@ -139,6 +154,7 @@
     <li><strong>Negative control 5</strong> - a Select-style dropdown (<code>role="listbox"</code>, wrapped in a plain <code>role="presentation"</code> positioning div) appears after 3.5s with the same fixed/coverage/delayed signals (see Finding 12: Cloudflare's Kumo-design-system Select). Must remain visible.</li>
     <li><strong>Negative control 6</strong> - an empty, <code>aria-hidden="true"</code> full-viewport scrim (no text content) appears after 4s (see Finding 13: Base UI's inert popup/drawer backdrop). Must remain visible.</li>
     <li><strong>Negative control 7</strong> - a bottom drawer with <code>role="dialog"</code> but no <code>aria-modal</code>, scroll-locked, appears after 4.5s (see Finding 14: Cloudflare's "Connect to a repository" drawer). Must remain visible.</li>
+    <li><strong>Negative control 8</strong> - a Radix-style profile dropdown (<code>role="menu"</code> inside a bare <code>position: fixed</code> popper wrapper with no role of its own) appears after 5s with a scroll-lock, reproducing the <code>position(3) + scrollLock(3) + delayed(1)</code> combination every modal dropdown menu produces (see Finding 15: HackerRank's profile dropdown). Must remain visible.</li>
   </ul>
 
   <p>Set <code>OAB_DEBUG = true</code> at the top of overlay-engine.js to see the per-signal score breakdown for every evaluated element in the console.</p>
@@ -259,6 +275,30 @@
       document.getElementById('fixture-mount').appendChild(root);
       console.log('[fixture] negative control 7 injected (dialog role, no aria-modal, scroll-lock)');
     }, 4500);
+
+    // Negative control 8: Radix-style dropdown menu - the popper wrapper
+    // itself carries no role (z-index: auto, no coverage), so the exemption
+    // has to come from the wrapped role="menu". Modal dropdown menus lock
+    // body scroll on open, same as a dialog. See Finding 15.
+    setTimeout(() => {
+      document.body.style.overflow = '';
+    }, 4900);
+
+    setTimeout(() => {
+      document.body.style.overflow = 'hidden';
+      const root = document.createElement('div');
+      root.className = 'legit-a11y-menu-root';
+      root.setAttribute('data-radix-popper-content-wrapper', '');
+      root.innerHTML = `
+        <div class="legit-a11y-menu-panel" role="menu" aria-orientation="vertical" aria-label="Drop Down Menu Content">
+          <div role="menuitem">Profile</div>
+          <div role="menuitem">Settings</div>
+          <div role="menuitem">Submissions</div>
+          <div role="menuitem">Logout</div>
+        </div>`;
+      document.getElementById('fixture-mount').appendChild(root);
+      console.log('[fixture] negative control 8 injected (Radix-style role="menu" dropdown + scroll-lock)');
+    }, 5000);
   </script>
 </body>
 </html>
