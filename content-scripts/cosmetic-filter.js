@@ -40,6 +40,7 @@ const OAB_OVERLAY_SELECTORS = [
   'div[id*="ezmob-footer"]',
   'div[class*="propeller-overlay"]',
   'div[class*="exoclick-overlay"]',
+  'div[class*="exo-native-widget"]',
   'div[class*="fullscreen-ad"]',
   'div[id*="fullscreen-ad"]',
   'div[class*="take-over-ad"]',
@@ -75,10 +76,16 @@ const OAB_GENERIC_AD_SELECTORS = [
   '[id*="native-ad"]',
   'div[id^="ad_"]',
   'div[class^="ad-"]',
-  'div[class="ad"]',
+  'div.ad',
   'div[id="ad"]',
-  'div[class*=" ad "]',
-  'aside[class*="ad"]',
+  // Token/prefix matches, never a bare `*="ad"` substring - "ad" is a
+  // substring of shadow, header, loading, badge, breadcrumb, so a substring
+  // match here hid ordinary sidebars outright.
+  'aside.ad',
+  'aside.ads',
+  'aside[class^="ad-"]',
+  'aside[class*="advert"]',
+  'div[class*="c-ads"]',
   '.banner-ad',
   '#banner-ad',
   '.top-ad',
@@ -104,6 +111,7 @@ const OAB_GENERIC_AD_SELECTORS = [
   'iframe[src*="adnxs.com"]',
   'iframe[src*="amazon-adsystem.com"]',
   'iframe[src*="criteo.com"]',
+  'iframe[id^="__clb-"]',
   '.pub_300x250',
   '.pub_300x250m',
   '.pub_728x90',
@@ -184,9 +192,9 @@ function oabCosmeticApplyState(enabled, whitelisted) {
     oabCosmeticClearRescans();
   }
 
-  // Bridge to popunder-guard.js (MAIN world, no chrome.storage access).
-  // documentElement exists by document_start, safe to call immediately.
-  document.documentElement.setAttribute('data-oab-enabled', String(active));
+  // The data-oab-enabled bridge to popunder-guard.js is owned by
+  // state-bridge.js - it has to cover subframes too, which this script
+  // (all_frames: false) never sees.
 }
 
 function oabIsWhitelisted(siteWhitelist) {

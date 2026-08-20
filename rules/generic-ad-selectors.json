@@ -27,10 +27,13 @@
 
   "div[id^=\"ad_\"]",
   "div[class^=\"ad-\"]",
-  "div[class=\"ad\"]",
+  "div.ad",
   "div[id=\"ad\"]",
-  "div[class*=\" ad \"]",
-  "aside[class*=\"ad\"]",
+  "aside.ad",
+  "aside.ads",
+  "aside[class^=\"ad-\"]",
+  "aside[class*=\"advert\"]",
+  "div[class*=\"c-ads\"]",
 
   ".banner-ad",
   "#banner-ad",
@@ -59,6 +62,7 @@
   "iframe[src*=\"adnxs.com\"]",
   "iframe[src*=\"amazon-adsystem.com\"]",
   "iframe[src*=\"criteo.com\"]",
+  "iframe[id^=\"__clb-\"]",
 
   ".pub_300x250",
   ".pub_300x250m",

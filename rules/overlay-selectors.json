@@ -33,6 +33,7 @@
   "div[id*=\"ezmob-footer\"]",
   "div[class*=\"propeller-overlay\"]",
   "div[class*=\"exoclick-overlay\"]",
+  "div[class*=\"exo-native-widget\"]",
 
   "div[class*=\"fullscreen-ad\"]",
   "div[id*=\"fullscreen-ad\"]",

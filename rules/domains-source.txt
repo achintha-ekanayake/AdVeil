@@ -55,6 +55,21 @@ popcash.net
 propellerads.com
 adcash.com
 exoclick.com
+magsrv.com
+pemsrv.com
+exosrv.com
+exdynsrv.com
+realsrv.com
+bxcdn.net
+bkcdn.net
+
+pncloudfl.com
+bncloudfl.com
+coosync.com
+ybs2ffs7v.com
+12ezo5v60.com
+fvcwqkkqmuv.com
+kjfhenoqfyfljo.com
 juicyads.com
 trafficjunky.net
 mgid.com
@@ -79,6 +94,7 @@ adsco.re
 antiadblocksystems.com
 
 # --- Analytics / trackers ---
+counter.yadro.ru
 scorecardresearch.com
 quantserve.com
 quantcount.com
