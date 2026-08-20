@@ -137,6 +137,30 @@ async function setTabCosmeticCount(tabId, absoluteCount) {
   updateBadge(tabId);
 }
 
+// --- Guard state ------------------------------------------------------------
+
+function hostnameOf(url) {
+  try {
+    return new URL(url).hostname;
+  } catch (e) {
+    return '';
+  }
+}
+
+// Resolves enabled/whitelist for the TOP-LEVEL page of the sender's tab, so a
+// cross-origin subframe - which cannot read the top hostname itself - gets the
+// same answer the top frame does. See content-scripts/state-bridge.js.
+function resolveGuardState(sender, sendResponse) {
+  const tabUrl = (sender.tab && sender.tab.url) || '';
+  chrome.storage.local.get(['enabled', 'siteWhitelist'], (result) => {
+    const enabled = result.enabled !== false;
+    const list = Array.isArray(result.siteWhitelist) ? result.siteWhitelist : [];
+    const hostname = hostnameOf(tabUrl);
+    const whitelisted = !!hostname && list.includes(hostname);
+    sendResponse({ type: 'OAB_GUARD_STATE', active: enabled && !whitelisted });
+  });
+}
+
 // --- Message handling ----------------------------------------------------
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -158,6 +182,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const count = typeof message.count === 'number' ? message.count : 0;
       setTabCosmeticCount(tabId, count);
       return undefined;
+    }
+
+    case 'OAB_GET_GUARD_STATE': {
+      resolveGuardState(sender, sendResponse);
+      return true; // keep the message channel open for the async sendResponse
     }
 
     case 'OAB_GET_TAB_STATS': {

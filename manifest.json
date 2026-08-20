@@ -36,6 +36,13 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
+      "js": ["content-scripts/state-bridge.js"],
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_origin_as_fallback": true
+    },
+    {
+      "matches": ["<all_urls>"],
       "js": ["content-scripts/cosmetic-filter.js", "content-scripts/overlay-engine.js"],
       "run_at": "document_start",
       "all_frames": false
