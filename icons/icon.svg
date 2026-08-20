@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="AdVeil">
+  <defs>
+    <clipPath id="tile">
+      <rect width="128" height="128" rx="14" ry="14"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#tile)">
+    <rect width="128" height="128" fill="#0f2a1a"/>
+    <path d="M38 21 H90 Q101 21 101 32 V62 C101 86 92 101 64 111 C36 101 27 86 27 62 V32 Q27 21 38 21 Z" fill="none" stroke="#4fbe72" stroke-width="10.5" stroke-linejoin="round"/>
+    <path d="M32 96 L106 22" stroke="#ffffff" stroke-width="13" stroke-linecap="butt"/>
+  </g>
+</svg>
