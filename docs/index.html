@@ -7,7 +7,8 @@
 <title>AdVeil - block overlay ads, popunders, and trackers</title>
 <meta name="description" content="AdVeil is an open-source, cross-browser extension that blocks overlay ads, popunder redirects, and trackers, with all detection running locally in your browser." />
 <link rel="canonical" href="https://achintha-ekanayake.github.io/AdVeil/" />
-<link rel="icon" href="icons/icon32.png" type="image/png" />
+<link rel="icon" href="icons/icon48.png" type="image/png" sizes="48x48" />
+<link rel="icon" href="icons/icon128.png" type="image/png" sizes="128x128" />
 
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="AdVeil" />
@@ -46,6 +47,102 @@
     "https://github.com/achintha-ekanayake/AdVeil",
     "https://chromewebstore.google.com/detail/adveil/klfjblcfnhfplgmacacfanaigeiimbje",
     "https://addons.mozilla.org/en-US/firefox/addon/adveil-adblocker/"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "Install AdVeil in Chrome from source",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "name": "Download the release",
+      "text": "Download and unzip the latest Chrome release from GitHub, or clone the source."
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Enable Developer mode",
+      "text": "Open chrome://extensions and enable Developer mode."
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Load the extension",
+      "text": "Select Load unpacked and choose the unzipped folder."
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "Install AdVeil in Firefox from source",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "name": "Download the release",
+      "text": "Download and unzip the latest Firefox release from GitHub, or clone the source."
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Open the debugging page",
+      "text": "Open about:debugging#/runtime/this-firefox."
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Load the temporary add-on",
+      "text": "Select Load Temporary Add-on… and choose manifest.json. Temporary add-ons are removed on restart; for a persistent session use Mozilla's web-ext CLI."
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is AdVeil free to use?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. AdVeil is free and open source under the MIT license."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does AdVeil collect or sell my data?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. All ad and tracker detection runs locally in your browser; nothing is collected, transmitted, or sold. See the privacy policy for details."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which browsers does AdVeil support?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Chrome, Chromium-based browsers such as Edge, and Firefox, from a single Manifest V3 codebase."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does AdVeil need access to all websites?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Overlay ad and popunder detection has to run on every page load, which requires the <all_urls> permission. See the privacy policy for exactly what that access is used for."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Where can I get AdVeil?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Install it from the Chrome Web Store, or download the latest release from GitHub to load it manually in Chrome or Firefox."
+      }
+    }
   ]
 }
 </script>
@@ -182,6 +279,24 @@
     padding: 1rem 1.25rem;
     margin: 1.5rem 0;
   }
+  .faq {
+    display: grid;
+    gap: 0.6rem;
+    margin-top: 1.25rem;
+  }
+  .faq details {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.8rem 1.1rem;
+  }
+  .faq summary {
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .faq details p {
+    margin: 0.6rem 0 0.1rem;
+    color: var(--muted);
+  }
   footer {
     margin-top: 3rem;
     padding-top: 1.5rem;
@@ -264,6 +379,30 @@
 
   <h2>Open source</h2>
   <p>Full source code, including the backend for the optional bug-report feature, is available at <a href="https://github.com/achintha-ekanayake/AdVeil">github.com/achintha-ekanayake/AdVeil</a>. Contributions are welcome - see <a href="https://github.com/achintha-ekanayake/AdVeil/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>.</p>
+
+  <h2>Frequently asked questions</h2>
+  <div class="faq">
+    <details>
+      <summary>Is AdVeil free to use?</summary>
+      <p>Yes. AdVeil is free and open source under the MIT license.</p>
+    </details>
+    <details>
+      <summary>Does AdVeil collect or sell my data?</summary>
+      <p>No. All ad and tracker detection runs locally in your browser; nothing is collected, transmitted, or sold. See the <a href="privacy.html">privacy policy</a> for details.</p>
+    </details>
+    <details>
+      <summary>Which browsers does AdVeil support?</summary>
+      <p>Chrome, Chromium-based browsers such as Edge, and Firefox, from a single Manifest V3 codebase.</p>
+    </details>
+    <details>
+      <summary>Why does AdVeil need access to all websites?</summary>
+      <p>Overlay ad and popunder detection has to run on every page load, which requires the <code>&lt;all_urls&gt;</code> permission. See the <a href="privacy.html">privacy policy</a> for exactly what that access is used for.</p>
+    </details>
+    <details>
+      <summary>Where can I get AdVeil?</summary>
+      <p>Install it from the <a href="https://chromewebstore.google.com/detail/adveil/klfjblcfnhfplgmacacfanaigeiimbje">Chrome Web Store</a>, or download the latest release from GitHub to load it manually in Chrome or Firefox.</p>
+    </details>
+  </div>
 
   <footer>
     <p>AdVeil is provided as-is, with no warranty of any kind. It is not affiliated with any browser vendor, ad network, or the websites it may modify.</p>
