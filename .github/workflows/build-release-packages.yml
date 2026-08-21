@@ -16,6 +16,19 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Tag and manifest version must agree
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          manifest=$(node -p "require('./manifest.json').version")
+          if [ "${TAG#v}" != "$manifest" ]; then
+            echo "Release tag is $TAG but manifest.json says $manifest." >&2
+            echo "Bump manifest.json (and package.json) to ${TAG#v}, then re-cut the release." >&2
+            exit 1
+          fi
+          echo "tag=$TAG matches manifest.version=$manifest"
+
       - name: Regenerate DNR rules
         run: npm run build
 
